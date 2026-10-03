@@ -1,0 +1,2486 @@
+<!doctype html>
+<html lang="hi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<link rel="apple-touch-icon" href="icon-192.png"><link rel="manifest" href="manifest.json"><meta name="theme-color" content="#A3232A"><title>Party Khata Viewer</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Martel:wght@700;800&family=Mukta:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper:#F4F6F3; --sheet:#FFFFFF; --ink:#1F2430; --muted:#5B6370; --rule:#DCE2E7; --rule2:#C9D3DC;
+  --red:#A3232A; --band:#A3232A; --green:#2B6B48; --hl:#FFF3CC; --chip:#EAEFE9; --focus:#1F5FBF;
+  --serif:"Martel", "Noto Serif Devanagari", Georgia, serif;
+  --sans:"Mukta", "Noto Sans Devanagari", "Segoe UI", system-ui, sans-serif;
+  box-sizing:border-box; padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --paper:#13161B; --sheet:#1A1E25; --ink:#E5E8EC; --muted:#9AA3AF; --rule:#2B313A; --rule2:#38404B;
+    --red:#E8696E; --band:#7A1C21; --green:#6CC495; --hl:#3A331E; --chip:#232831; --focus:#7FB0FF;
+  }
+}
+:root[data-theme="dark"]{
+  --paper:#13161B; --sheet:#1A1E25; --ink:#E5E8EC; --muted:#9AA3AF; --rule:#2B313A; --rule2:#38404B;
+  --red:#E8696E; --band:#7A1C21; --green:#6CC495; --hl:#3A331E; --chip:#232831; --focus:#7FB0FF;
+}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*,*::before,*::after{box-sizing:border-box}
+body{margin:0;background:var(--paper);color:var(--ink);font:16px/1.5 var(--sans);-webkit-font-smoothing:antialiased}
+button,input{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
+[hidden]{display:none !important}
+.dr{color:var(--red)} .cr{color:var(--green)}
+
+/* ---------- load screen ---------- */
+#load{max-width:760px;margin:0 auto;padding:56px 20px 40px}
+#load h1{font:800 clamp(30px,5vw,44px)/1.15 var(--serif);margin:0 0 12px;letter-spacing:-.01em}
+#load .lede{font-size:18px;color:var(--muted);margin:0 0 28px;max-width:60ch}
+#drop{border:2px dashed var(--rule2);border-radius:14px;background:var(--sheet);padding:28px;display:grid;gap:18px}
+#drop.over{border-color:var(--red);background:var(--hl)}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.btn{border:1px solid var(--ink);background:var(--ink);color:var(--sheet);border-radius:8px;padding:9px 16px;font-weight:600;cursor:pointer}
+.btn.alt{background:transparent;color:var(--ink)}
+.btn.ghost{background:transparent;color:var(--ink);border-color:var(--rule2);padding:5px 12px;font-weight:500;font-size:14px}
+.btn:disabled{opacity:.5;cursor:wait}
+.need{margin:0;padding:0;list-style:none;display:grid;gap:6px;font-size:15px;color:var(--muted)}
+.need b{color:var(--ink);font-weight:600}
+#status{min-height:1.5em;margin:4px 0 0;font-weight:500}
+#status.err{color:var(--red)}
+#pick{display:grid;gap:8px;margin-top:8px}
+#pick .btn{text-align:left;background:transparent;color:var(--ink)}
+.privacy{font-size:14px;color:var(--muted);margin-top:22px;max-width:62ch}
+
+/* ---------- app ---------- */
+.top{background:var(--band);color:#fff;padding:12px 20px;display:flex;gap:16px;align-items:center;flex-wrap:wrap}
+.top h1{font:800 22px/1.2 var(--serif);margin:0}
+.top p{margin:0;font-size:13px;opacity:.85}
+.top .sp{flex:1}
+.pill{font-size:12.5px;background:rgba(255,255,255,.16);border-radius:999px;padding:4px 10px;line-height:1.3}
+.pill.off{background:#FFE9A8;color:#5A3B00;font-weight:600}
+.top .btn.ghost{color:#fff;border-color:rgba(255,255,255,.55)}
+.secs{display:flex;gap:2px;overflow-x:auto;background:var(--sheet);border-bottom:1px solid var(--rule2);padding:0 12px;scrollbar-width:none}
+.secs button{flex:none;background:none;border:0;border-bottom:3px solid transparent;padding:11px 14px 9px;font-weight:600;color:var(--muted);cursor:pointer;white-space:nowrap}
+.secs button[aria-current=page]{color:var(--ink);border-bottom-color:var(--red)}
+.secs button:hover{color:var(--ink)}
+.secs svg,.secs .sm{display:none}
+.btot{margin:6px 0;font-size:14px;color:var(--muted)} .btot strong{color:var(--ink);font-variant-numeric:tabular-nums}
+#billDlg{border:0;border-radius:14px;padding:0;width:min(860px,96vw);max-height:92vh;background:var(--sheet);color:var(--ink);box-shadow:0 20px 60px rgba(0,0,0,.35)}
+#billDlg::backdrop{background:rgba(15,18,24,.55)}
+#billDoc,.billdoc{padding:22px clamp(14px,4vw,30px) 8px}
+.bh{text-align:center;border-bottom:3px double var(--red);padding-bottom:10px;margin-bottom:12px}
+.bh h3{font:800 24px/1.2 var(--serif);margin:0}
+.bh p,.bparty p{margin:2px 0;color:var(--muted);font-size:14px}
+.bmeta{display:flex;justify-content:space-between;gap:12px;margin-bottom:10px}
+.bmeta div,.bparty{display:grid}
+.bmeta span,.bparty span{font-size:12px;color:var(--muted)}
+.bparty{background:var(--paper);border-radius:8px;padding:10px 12px;margin-bottom:12px}
+.btab{width:100%;border-collapse:collapse;font-size:14px}
+.btab th{text-align:left;font-size:12px;color:var(--muted);border-bottom:2px solid var(--ink);padding:5px 6px}
+.btab td{border-bottom:1px solid var(--rule);padding:6px}
+.btab .n{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+.bsum{margin:10px 0 0 auto;max-width:300px;display:grid;gap:2px}
+.bsum div{display:flex;justify-content:space-between;gap:16px;font-size:14px}
+.bsum dt{color:var(--muted)} .bsum dd{margin:0;font-variant-numeric:tabular-nums}
+.bsum .bnet{border-top:2px solid var(--ink);padding-top:6px;margin-top:4px;font-size:18px;font-weight:700}
+.bsum .bnet dt{color:var(--ink)}
+.bwords{font-size:13px;font-style:italic;color:var(--muted);text-align:right;margin:4px 0 10px}
+.bfoot{margin:2px 0;font-size:13px;color:var(--muted)}
+.bnote{margin:12px 0 0;font-size:12px;color:var(--muted)}
+.dlgBtns{position:sticky;bottom:0;background:var(--sheet);border-top:1px solid var(--rule);padding:12px clamp(14px,4vw,30px);display:flex;flex-wrap:wrap;gap:8px}
+.btn.wa{background:#1F7A4D;border-color:#1F7A4D;color:#fff;text-decoration:none}
+.btn.wa.alt{background:transparent;color:var(--ink);border-color:var(--rule2)}
+a.btn{display:inline-block}
+#printArea{display:none}
+.acts{display:flex;gap:8px;margin:10px 0 2px;flex-wrap:wrap}
+.act{flex:1 1 0;min-width:72px;max-width:130px;display:grid;justify-items:center;gap:3px;padding:8px 6px;border:1px solid var(--rule2);border-radius:10px;background:var(--sheet);color:var(--ink);font:600 12.5px var(--sans);cursor:pointer;text-decoration:none}
+.act:hover{border-color:var(--ink)}
+.act svg{color:var(--red)}
+a.act[href*="wa.me"] svg{color:#1F8A55}
+.pacts{margin:0 0 14px}
+.bx{margin:6px 0 0}
+.vbody .sub,.items .sub{font-size:13px;color:var(--muted)}
+.stmt{font:12px/1.4 Arial,Helvetica,sans-serif;color:#000;background:#fff}
+.stmt .sh{text-align:center;border-bottom:2px solid #000;padding-bottom:6px;margin-bottom:8px}
+.stmt .sh h3{margin:0;font-size:20px}.stmt .sh p{margin:2px 0;font-size:11px}
+.stmt h4{text-align:center;margin:4px 0 8px;font-size:14px;text-decoration:underline}
+.stmt .sp2{display:flex;justify-content:space-between;gap:20px;margin-bottom:8px}
+.stmt .r{text-align:right}
+.stmt table{width:100%;border-collapse:collapse}
+.stmt th,.stmt td{border:1px solid #000;padding:3px 5px;vertical-align:top}
+.stmt th{background:#eee;text-align:left}
+.stmt tfoot td{font-weight:700}
+/* day book cards */
+.vcards{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:10px;align-items:start}
+.vcard{background:var(--sheet);border:1px solid var(--rule2);border-radius:12px;overflow:hidden}
+.vcard.open{grid-column:1 / -1;border-color:var(--red)}
+.vhead{all:unset;box-sizing:border-box;display:grid;grid-template-columns:1fr auto;gap:2px 12px;width:100%;padding:12px 14px;cursor:pointer}
+.vhead:focus-visible{outline:2px solid var(--focus);outline-offset:-2px}
+.vhead:hover{background:color-mix(in srgb,var(--hl) 55%,transparent)}
+.vt{font-size:13px;color:var(--muted);font-weight:600}
+.vno{color:var(--ink)}
+.va{grid-row:1 / span 2;grid-column:2;align-self:center;font-size:18px;font-weight:700;font-variant-numeric:tabular-nums;white-space:nowrap}
+.va small{font-size:12px;font-weight:600}
+.vp{font-weight:700;font-size:16px;line-height:1.3}
+.vs{grid-column:1 / -1;font-size:13px;color:var(--muted)}
+.vbody{border-top:1px dashed var(--rule2);padding:10px 14px 12px;background:var(--paper)}
+.vbody table.mini{width:100%;min-width:0}
+.mini .sub{display:block;font-size:12px;color:var(--muted)}
+.bk{margin:8px 0 6px auto;max-width:340px;display:grid;gap:1px;font-size:14px}
+.bk div{display:flex;justify-content:space-between;gap:16px}
+.bk dt{color:var(--muted)} .bk dd{margin:0;font-variant-numeric:tabular-nums}
+.bk .bnet{border-top:2px solid var(--ink);margin-top:4px;padding-top:4px;font-weight:700;font-size:16px}
+.bk .bnet dt{color:var(--ink)}
+/* invoice: always printed-paper look */
+#billDoc{padding:14px;overflow:hidden;background:#fff}
+.inv{width:780px;box-sizing:border-box;border:1px solid #000;color:#000;background:#fff;font:12px/1.35 Arial,Helvetica,sans-serif}
+.inv b{font-weight:700}
+.i-top{display:grid;grid-template-columns:1fr auto 1fr;padding:4px 6px 0}
+.i-c{text-align:center}.i-r{text-align:right}
+.i-tt{font-weight:700;font-size:14px;text-decoration:underline}
+.i-name{font-weight:800;font-size:22px;letter-spacing:.02em}
+.i-addr{text-align:center;font-size:13px;padding:0 6px 2px}
+.i-fs{display:flex;justify-content:space-between;padding:0 6px 2px;border-bottom:1px solid #000}
+.i-two{display:grid;grid-template-columns:1fr 1fr;border-bottom:1px solid #000}
+.i-buyer{padding:3px 6px;border-right:1px solid #000}
+.i-inv{padding:3px 6px}
+.i-kv{display:flex;justify-content:space-between;gap:10px}
+.i-big{font-size:14px}
+.i-small{font-size:11px;min-height:14px}
+.i-items{width:100%;border-collapse:collapse}
+.i-items th{border-bottom:1px solid #000;border-right:1px solid #000;padding:3px 4px;text-align:left;font-size:12px}
+.i-items td{border-right:1px solid #000;padding:3px 4px;vertical-align:top}
+.i-items th:last-child,.i-items td:last-child{border-right:0}
+.i-items .c{text-align:center}.i-items .r{text-align:right}
+.bd{font-size:11px;padding-top:2px}
+.i-tot{display:grid;grid-template-columns:1fr 150px 210px;border-top:1px solid #000;border-bottom:1px solid #000}
+.i-oc{padding:3px 6px}
+.i-hsn{font-weight:700;font-family:"Times New Roman",serif;padding-top:4px}
+.i-tq{display:grid;grid-template-columns:auto auto auto;gap:14px;justify-content:end;padding:3px 8px;align-content:start;font-size:14px}
+.i-sum{border-left:1px solid #000;display:grid;align-content:start}
+.i-sum div{display:flex;justify-content:space-between;padding:1px 6px}
+.i-sum .i-net{border-top:1px solid #000;margin-top:auto;padding:3px 6px;font-size:14px}
+.i-rem{padding:2px 6px;border-bottom:1px solid #000;font-family:"Times New Roman",serif;font-size:13px}
+.i-words{padding:2px 6px}
+.i-foot{display:grid;grid-template-columns:1fr auto;padding:2px 6px 6px;min-height:90px}
+.i-terms{margin-top:6px}
+.i-sign{display:grid;justify-items:end;align-content:space-between;text-align:right}
+.report{padding:20px clamp(14px,3vw,36px) 48px;max-width:1280px}
+.report h2{font:800 clamp(22px,3vw,30px)/1.2 var(--serif);margin:0 0 4px;width:100%}
+.seg{display:inline-flex;border:1px solid var(--rule2);border-radius:8px;overflow:hidden;background:var(--sheet)}
+.seg button{background:none;border:0;padding:6px 12px;cursor:pointer;color:var(--muted);font-weight:500}
+.seg button[aria-pressed=true]{background:var(--ink);color:var(--sheet)}
+.ctl input[type=number]{padding:6px 10px;border:1px solid var(--rule2);border-radius:8px;background:var(--sheet);width:9em}
+.fpanel{display:flex;flex-wrap:wrap;gap:12px;align-items:end;width:100%;background:var(--sheet);border:1px solid var(--rule2);border-radius:10px;padding:12px}
+.fpanel[hidden]{display:none}
+.fbtn[aria-expanded=true]{background:var(--ink);color:var(--sheet)}
+.osd{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:6px 16px;margin:4px 0 8px}
+.osd div{display:grid}.osd dt{font-size:12px;color:var(--muted)}.osd dd{margin:0;font-variant-numeric:tabular-nums}
+.more{display:flex;gap:12px;align-items:center;padding:10px 16px;margin:0}
+.om,.mo-cell{display:none}
+@media (min-width:701px){.bahi > * > tr > .om + .n{border-left:3px double var(--red)}}
+.back{display:none;background:none;border:0;color:var(--red);font-weight:600;padding:0 0 6px;cursor:pointer;font-size:15px}
+.ctl select,.ctl input[type=search]{padding:6px 10px;border:1px solid var(--rule2);border-radius:8px;background:var(--sheet)}
+.ctl input[type=search]{min-width:min(260px,100%)}
+.sumline{margin:0 0 12px;color:var(--muted);font-size:15px}
+.sumline strong{color:var(--ink);font-variant-numeric:tabular-nums}
+.vchips{display:flex;flex-wrap:wrap;gap:8px;margin:0 16px 12px}
+.vchips div{background:var(--chip);border-radius:8px;padding:5px 12px;font-size:13px;color:var(--muted)}
+.vchips strong{color:var(--ink);font-variant-numeric:tabular-nums}
+.grid{display:grid;grid-template-columns:320px minmax(0,1fr);min-height:calc(100vh - 110px)}
+aside{border-right:1px solid var(--rule);background:var(--sheet);display:flex;flex-direction:column;max-height:calc(100vh - 64px);position:sticky;top:0}
+.find{padding:14px 14px 8px;border-bottom:1px solid var(--rule)}
+.find input[type=search]{width:100%;padding:9px 12px;border:1px solid var(--rule2);border-radius:8px;background:var(--paper)}
+.find label{display:flex;gap:8px;align-items:center;font-size:14px;color:var(--muted);margin-top:8px}
+#count{font-size:13px;color:var(--muted);margin:6px 0 0}
+#plist{list-style:none;margin:0;padding:0;overflow:auto;flex:1}
+#plist button{display:grid;grid-template-columns:1fr auto;gap:0 10px;width:100%;text-align:left;background:none;border:0;border-bottom:1px solid var(--rule);padding:9px 14px;cursor:pointer}
+#plist button:hover{background:var(--chip)}
+#plist button[aria-current]{background:var(--hl);box-shadow:inset 3px 0 0 var(--red)}
+.pn{font-weight:600;line-height:1.3}
+.ps{grid-column:1;font-size:13px;color:var(--muted)}
+.pb{grid-column:2;grid-row:1 / span 2;align-self:center;font-size:13px;font-variant-numeric:tabular-nums;white-space:nowrap}
+main{padding:22px clamp(14px,3vw,36px) 48px;min-width:0}
+.ctl{display:flex;gap:14px;flex-wrap:wrap;align-items:end;margin-bottom:14px;font-size:14px;color:var(--muted)}
+.ctl label{display:grid;gap:2px}
+.ctl input[type=date]{padding:6px 8px;border:1px solid var(--rule2);border-radius:8px;background:var(--sheet)}
+.ctl .chk{display:flex;gap:8px;align-items:center}
+#loaded{font-size:12px;color:var(--muted);margin-left:auto;align-self:center;max-width:46ch}
+.empty{padding:60px 0;color:var(--muted);max-width:52ch}
+.empty .big{font:800 26px var(--serif);color:var(--ink);margin:0 0 8px}
+.ph h2{font:800 clamp(24px,3.4vw,34px)/1.2 var(--serif);margin:0 0 4px}
+.pm{margin:0;color:var(--muted);font-size:15px}
+.pa{margin:2px 0 0;color:var(--muted);font-size:14px}
+.facts{display:flex;flex-wrap:wrap;gap:10px 36px;margin:16px 0 18px}
+.facts div{display:grid}
+.facts dt{font-size:13px;color:var(--muted)}
+.facts dd{margin:0;font-size:22px;font-weight:700;font-variant-numeric:tabular-nums}
+.tabs{display:flex;gap:4px;align-items:end;border-bottom:2px solid var(--ink);flex-wrap:wrap}
+.tabs [role=tab]{background:none;border:1px solid transparent;border-bottom:0;border-radius:8px 8px 0 0;padding:8px 18px;font-weight:600;cursor:pointer;color:var(--muted);margin-bottom:-2px}
+.tabs [role=tab][aria-selected=true]{background:var(--sheet);border-color:var(--ink);border-bottom:2px solid var(--sheet);color:var(--ink)}
+.tabs .sp{flex:1}
+.tabs .btn.ghost{margin-bottom:6px}
+.sheet{background:var(--sheet);border:1px solid var(--rule2);border-top:0;padding:14px 0 6px}
+.note{margin:0 16px 12px;font-size:14px;color:var(--muted)}
+.scroll{overflow-x:auto}
+
+/* the bahi-khata table: ruled rows, red double rules framing the money */
+table.bahi{width:100%;border-collapse:collapse;font-size:15px;min-width:760px}
+.bahi th{text-align:left;font-weight:600;font-size:13px;color:var(--muted);padding:6px 12px;border-bottom:3px double var(--red)}
+.bahi td{padding:7px 12px;border-bottom:1px solid var(--rule);vertical-align:top}
+.bahi .n{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+.bahi > * > tr > :is(th,td):not(.n) + :is(th,td).n:not(.x){border-left:3px double var(--red)}
+.bahi > * > tr > .n + .n:not(.x){border-left:1px solid color-mix(in srgb,var(--red) 35%,transparent)}
+.bahi .b{font-weight:600}
+.bahi .d{white-space:nowrap;font-variant-numeric:tabular-nums}
+.bahi .sub.mo,.bahi span.mo{display:none}
+.bahi .sub{display:block;font-size:13px;color:var(--muted);white-space:normal}
+.bahi tbody tr:hover td{background:color-mix(in srgb,var(--hl) 60%,transparent)}
+.bahi tr.op td{font-style:italic;color:var(--muted)}
+.bahi tfoot td{font-weight:700;border-bottom:0;border-top:2px solid var(--ink)}
+.bahi tfoot tr.cl td{border-top:1px solid var(--rule);font-size:16px}
+.bahi .none{color:var(--muted);text-align:center;padding:28px}
+.bahi tr.items td{background:var(--paper)}
+.link{text-align:left;background:none;border:0;padding:0;font-weight:600;color:var(--ink);text-decoration:underline;text-decoration-color:var(--red);text-underline-offset:3px;cursor:pointer}
+table.mini{border-collapse:collapse;font-size:14px;margin:4px 0 8px;min-width:480px}
+.mini th,.mini td{padding:4px 10px;border-bottom:1px solid var(--rule);text-align:left}
+.mini .n{text-align:right;font-variant-numeric:tabular-nums}
+.ageing{display:flex;flex-wrap:wrap;gap:8px;margin:0 16px 12px}
+.ageing div{background:var(--chip);border-radius:8px;padding:6px 12px;display:grid;font-size:13px;color:var(--muted)}
+.ageing strong{font-size:15px;font-variant-numeric:tabular-nums}
+
+@media (max-width:700px){
+  table.bahi.rep{min-width:0}
+  .rep .ag,.rep .hm{display:none}
+  .rep .sub.mo{display:block}
+  .rep span.mo{display:inline}
+  .rep .om,.rep .mo-cell{display:table-cell}
+  .rep tr.hm{display:none}
+  .rep .d{white-space:normal;min-width:4.2em}
+  .rep table.mini{min-width:0;width:100%}
+  .rep .btot{font-size:13px}
+  .rep .n.b{white-space:normal}
+  table.bahi.rep{font-size:14px}
+  .hmm{display:none}
+  .vbody{padding:8px 10px 10px}
+  .vbody .mini{font-size:13px}
+  .vbody .mini th,.vbody .mini td{padding:4px 4px}
+  .vcards{grid-template-columns:1fr}
+  #loaded,.dsk,.tabs .btn.ghost,[data-dsk]{display:none !important}
+  #coMeta{display:none}
+  .top{padding:10px 14px;gap:8px}
+  .top .sp{display:none}
+  .top > div:first-child{flex:1 1 100%}
+  .pill{flex:1 1 auto;font-size:12px}
+  #ctlDates{display:grid;grid-template-columns:1fr 1fr;gap:8px;width:100%}
+  #ctlDates > label{grid-column:1 / -1}
+  #customDates{display:contents}
+  #ctlDates input,#ctlDates select{width:100%;box-sizing:border-box}
+  .back{display:inline-block}
+  #secLedger.picked aside{display:none}
+  #secLedger:not(.picked) main{display:none}
+  aside{max-height:none}
+  #secLedger:not(.picked) aside{min-height:calc(100vh - 140px)}
+  .fpanel label{flex:1 1 40%}
+  #repCtl{gap:10px}
+  #repCtl > label{flex:1 1 40%;min-width:0}
+  #repCtl > label input,#repCtl > label select{width:100%;box-sizing:border-box;min-width:0}
+  .fpanel input[type=number],.fpanel input[type=date],.fpanel select{width:100%;box-sizing:border-box}
+  #billDoc{padding:8px}
+  .rep td,.rep th{padding:6px 6px}
+}
+@media (max-width:900px){
+  .secs{position:fixed;left:0;right:0;bottom:0;z-index:20;padding:0 0 env(safe-area-inset-bottom,0px);border-top:1px solid var(--rule2);border-bottom:0;box-shadow:0 -4px 16px rgba(0,0,0,.06);gap:0}
+  .secs button{flex:1 1 0;display:grid;justify-items:center;gap:2px;padding:7px 2px 6px;border-bottom:0;border-top:3px solid transparent;font-size:11px;line-height:1.15;white-space:normal;text-align:center}
+  .secs button[aria-current=page]{border-top-color:var(--red);color:var(--red)}
+  .secs svg,.secs .sm{display:block} .secs .lg{display:none}
+  #app{padding-bottom:calc(68px + env(safe-area-inset-bottom,0px))}
+  .grid{grid-template-columns:1fr}
+  aside{position:static;max-height:46vh;border-right:0;border-bottom:1px solid var(--rule)}
+  #loaded{margin-left:0;max-width:none}
+}
+@media print{
+  body.print-bill > *:not(#printArea){display:none !important}
+  body.print-bill #printArea{display:block !important;padding:0}
+  body.print-bill .inv{width:100%}
+  @page{size:A4;margin:10mm}
+  .top,.secs,aside,.ctl,.tabs .btn,.tabs [role=tab][aria-selected=false],.note,.ageing{display:none !important}
+  body{background:#fff;color:#000}
+  .grid{display:block} main{padding:0}
+  .sheet{border:0}
+  table.bahi{min-width:0;font-size:12px}
+}
+@media (prefers-reduced-motion:reduce){*{scroll-behavior:auto !important}}
+</style>
+</head>
+<body>
+<section id="load">
+  <h1>Party ka khata dekhein</h1>
+  <p class="lede">Accounting software ka data folder chunein. Phir kisi bhi party ka ledger, bills aur outstanding ek jagah dikhega.</p>
+  <div id="drop">
+    <div class="row">
+      <button type="button" class="btn" id="pickFolder">Data folder chunein</button>
+      <button type="button" class="btn alt" id="pickFiles">Files chunein</button>
+      <span style="color:var(--muted);font-size:14px">ya files yahan kheench kar chhodein</span>
+    </div>
+    <ul class="need">
+      <li><b>AcMast.mdb</b> zaroori hai: parties aur bill-wise outstanding</li>
+      <li><b>AcTran25.mdb</b> (har saal ki): ledger entries</li>
+      <li><b>STTran25.mdb</b> aur <b>STMast.mdb</b>: bills aur items</li>
+    </ul>
+    <p id="status" role="status" aria-live="polite"></p>
+    <div id="pick" hidden></div>
+  </div>
+  <div id="loadSrv" hidden>
+    <div id="pinBox" class="row" hidden>
+      <label for="pinIn" style="width:100%;color:var(--muted)">Laptop par rakha hua PIN daalein</label>
+      <input id="pinIn" type="password" inputmode="numeric" autocomplete="off" style="padding:9px 12px;border:1px solid var(--rule2);border-radius:8px;background:var(--sheet);width:10em">
+      <button type="button" class="btn" id="pinGo">Kholein</button>
+    </div>
+    <div id="pwBox" class="row" hidden>
+      <label for="pwIn" style="width:100%;color:var(--muted)">Party Khata ka password daalein (jo laptop ke setup page par rakha tha)</label>
+      <input id="pwIn" type="password" autocomplete="current-password" style="padding:9px 12px;border:1px solid var(--rule2);border-radius:8px;background:var(--sheet);flex:1 1 12em;min-width:0">
+      <button type="button" class="btn" id="pwGo2">Kholein</button>
+      <p style="width:100%;font-size:13px;color:var(--muted);margin:4px 0 0">Ek baar daalne ke baad ye mobile password yaad rakhega.</p>
+    </div>
+    <button type="button" class="btn" id="retry" hidden>Dobara koshish karein</button>
+  </div>
+  <p class="privacy">Files aapke computer par hi browser me padhi jaati hain, kahin upload nahi hotin. Software chalu ho to bhi kaam karta hai, kyunki ye sirf padhta hai, kuch badalta nahi.</p>
+  <input type="file" id="inFolder" webkitdirectory directory multiple hidden>
+  <input type="file" id="inFiles" accept=".mdb,.MDB" multiple hidden>
+</section>
+
+<div id="app" hidden>
+  <div class="top">
+    <div><h1 id="coName"></h1><p id="coMeta"></p></div>
+    <span class="sp"></span>
+    <span id="syncPill" class="pill" hidden></span>
+    <button type="button" class="btn ghost" id="reload">Doosra folder kholein</button>
+  </div>
+  <nav class="secs" aria-label="Section">
+    <button type="button" data-sec="day"><svg aria-hidden="true" viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="5" width="16" height="15" rx="2"/><path d="M8 3v4M16 3v4M4 10h16"/></svg><span class="lg">Day Book</span><span class="sm">Day Book</span></button>
+    <button type="button" data-sec="ledger"><svg aria-hidden="true" viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 4h11a3 3 0 0 1 3 3v13H8a3 3 0 0 1-3-3z"/><path d="M5 17a3 3 0 0 1 3-3h11"/></svg><span class="lg">Ledger</span><span class="sm">Ledger</span></button>
+    <button type="button" data-sec="party"><svg aria-hidden="true" viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="3.5"/><path d="M5 20a7 7 0 0 1 14 0"/></svg><span class="lg">Party-wise baaki</span><span class="sm">Party baaki</span></button>
+    <button type="button" data-sec="broker"><svg aria-hidden="true" viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="9" r="3"/><circle cx="16.5" cy="9" r="3"/><path d="M2.5 20a5.5 5.5 0 0 1 11 0M11 20a5.5 5.5 0 0 1 11 0"/></svg><span class="lg">Broker-wise baaki</span><span class="sm">Broker baaki</span></button>
+    <button type="button" data-sec="bills"><svg aria-hidden="true" viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3h12v18l-3-2-3 2-3-2-3 2z"/><path d="M9 8h6M9 12h6"/></svg><span class="lg">Sab baaki bills</span><span class="sm">Sab bills</span></button>
+    <button type="button" data-sec="pur"><svg aria-hidden="true" viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 4h2l2.2 10.5a1.5 1.5 0 0 0 1.5 1.2h8.6a1.5 1.5 0 0 0 1.5-1.1L21 8H6"/><circle cx="9.5" cy="19.5" r="1.3"/><circle cx="17" cy="19.5" r="1.3"/></svg><span class="lg">Purchase</span><span class="sm">Purchase</span></button>
+  </nav>
+  <main id="secReport" class="report" hidden>
+    <div class="ctl" id="repCtl"></div>
+    <div id="repBody"></div>
+  </main>
+  <div class="grid" id="secLedger">
+    <aside>
+      <div class="find">
+        <input type="search" id="q" placeholder="Party ka naam, station, mobile, GST…" aria-label="Party khojein" autocomplete="off">
+        <label><input type="checkbox" id="active" checked> Sirf wo parties jinki entry hai</label>
+        <p id="count"></p>
+      </div>
+      <ul id="plist"></ul>
+    </aside>
+    <main>
+      <button type="button" class="back" id="backList">‹ Sab parties</button>
+      <div class="ctl">
+        <span id="ctlDates" class="row">
+          <label>Saal<select id="fySel"></select></label>
+          <span id="customDates" class="row">
+            <label>Kab se<input type="date" id="from"></label>
+            <label>Kab tak<input type="date" id="to"></label>
+          </span>
+        </span>
+        <label class="chk" id="ctlPending" hidden><input type="checkbox" id="pending" checked> Sirf baaki bills</label>
+        <span id="loaded"></span>
+      </div>
+      <div id="party"></div>
+    </main>
+  </div>
+</div>
+<dialog id="billDlg" aria-label="Bill">
+  <div id="billDoc"></div>
+  <div class="dlgBtns">
+    <a class="btn wa" id="waParty" target="_blank" rel="noopener">Party ko WhatsApp</a>
+    <a class="btn wa alt" id="waAny" target="_blank" rel="noopener">WhatsApp par bhejein</a>
+    <button type="button" class="btn alt" id="shareBill">Share</button>
+    <button type="button" class="btn alt" id="printBill">Print / PDF</button>
+    <button type="button" class="btn ghost" id="closeBill">Band karein</button>
+  </div>
+</dialog>
+<div id="printArea" class="billdoc"></div>
+<script>window.process=window.process||{env:{},browser:true,version:"",versions:{},nextTick:function(f){var a=[].slice.call(arguments,1);queueMicrotask(function(){f.apply(null,a)})}};</script>
+
+<script>(function (root) {
+  "use strict";
+
+  function cols(table, wanted) {
+    const have = new Set(table.getColumnNames());
+    return wanted.filter((c) => have.has(c));
+  }
+  function rows(reader, name, wanted) {
+    const names = reader.getTableNames();
+    const real = names.find((n) => n.toLowerCase() === name.toLowerCase());
+    if (!real) return [];
+    const t = reader.getTable(real);
+    return t.getData(wanted ? { columns: cols(t, wanted) } : undefined);
+  }
+  function s(v) {
+    return v == null ? "" : String(v).trim();
+  }
+  function n(v) {
+    const x = Number(v);
+    return Number.isFinite(x) && Math.abs(x) < 1e13 ? x : 0;
+  }
+  function d(v) {
+    if (!(v instanceof Date) || isNaN(v)) return null;
+    if (v.getUTCFullYear() < 1980 || v.getUTCFullYear() > 2100) return null;
+    return Date.UTC(v.getUTCFullYear(), v.getUTCMonth(), v.getUTCDate());
+  }
+
+  // readers: { acMast, stMast?, acTran: [{year, reader}], stTran: [{year, reader}] }
+  // progress: optional fn(msg)
+  async function build(readers, progress) {
+    const say = async (m) => {
+      if (progress) await progress(m);
+    };
+    const D = {
+      company: {},
+      accounts: new Map(),
+      groups: new Map(),
+      vt: new Map(),
+      items: new Map(),
+      books: new Map(),
+      ledger: new Map(),
+      vouchers: new Map(),
+      opening: new Map(),
+      bills: new Map(),
+      billById: new Map(),
+      itemsById: new Map(),
+      os: new Map(),
+      years: [],
+    };
+    const am = readers.acMast;
+
+    await say("Company aur parties padh rahe hain…");
+    const co = rows(am, "Company")[0] || {};
+    const dch = rows(am, "DCHPrint", ["SI_BankersDetail", "SI_TermsDetail"])[0] || {};
+    const ml = (v) => s(v).split(/\r?\n/).map((x) => x.trim()).filter(Boolean);
+    D.company = {
+      name: s(co.COname),
+      address: [s(co.Address1), s(co.Address2), s(co.Station) + (s(co.PinCode) ? "-" + s(co.PinCode) : "")].filter(Boolean).join(", "),
+      gst: s(co.GSTNo),
+      pan: s(co.PANNo) || (s(co.GSTNo).length >= 12 ? s(co.GSTNo).slice(2, 12) : ""),
+      phones: [s(co.OPhone), s(co.SMSMobile), s(co.SMSMobile1), s(co.RPhone)].filter(Boolean).filter((v, i, a) => a.indexOf(v) === i).slice(0, 2),
+      email: s(co.Email),
+      fssai: s(co.LICNo),
+      fssaiTitle: s(co.LICNoTitle) || "FSSAI No.",
+      stateCode: s(co.StateCode) || s(co.GSTNo).slice(0, 2),
+      bankers: ml(dch.SI_BankersDetail),
+      terms: ml(dch.SI_TermsDetail),
+    };
+    for (const g of rows(am, "Schedule", ["ScIsno", "ScName"])) D.groups.set(n(g.ScIsno), s(g.ScName));
+    for (const v of rows(am, "VnType", ["VtSeries", "VtName"])) D.vt.set(n(v.VtSeries), s(v.VtName));
+
+    for (const a of rows(am, "Account", ["AcCode", "AcName", "AcScIsno", "AcOS", "AcStation", "Station", "Area"])) {
+      const code = s(a.AcCode);
+      if (!code || /^#+$/.test(code)) continue;
+      D.accounts.set(code, {
+        code,
+        name: s(a.AcName) || code,
+        group: D.groups.get(n(a.AcScIsno)) || "",
+        billWise: s(a.AcOS) === "Y",
+        station: s(a.AcStation) || s(a.Station) || s(a.Area),
+        mobile: "",
+        phone: "",
+        address: "",
+        gst: "",
+        pan: "",
+      });
+    }
+    for (const i of rows(am, "AcInfo", ["AcCode", "Address", "PinCode", "Mobile", "Phone1", "PANNo", "GSTNo", "Email"])) {
+      const a = D.accounts.get(s(i.AcCode));
+      if (!a) continue;
+      a.address = s(i.Address).replace(/\s*\r?\n\s*/g, ", ").replace(/^,\s*|,\s*$/g, "");
+      if (s(i.PinCode)) a.address += (a.address ? " – " : "") + s(i.PinCode);
+      a.mobile = s(i.Mobile);
+      a.phone = s(i.Phone1);
+      a.pan = s(i.PANNo);
+      a.gst = s(i.GSTNo);
+    }
+    for (const g of rows(am, "AcGstRegDetail", ["AcCode", "AcGstNo"])) {
+      const a = D.accounts.get(s(g.AcCode));
+      if (a && s(g.AcGstNo)) a.gst = s(g.AcGstNo);
+    }
+
+    // HSN per GST item type
+    const hsnByGst = new Map();
+    for (const g of rows(am, "GstItemType", ["GstITno", "GstHSNCode"])) hsnByGst.set(n(g.GstITno), s(g.GstHSNCode));
+    D.hsn = new Map();
+    if (readers.stMast) {
+      const best = new Map();
+      for (const r of rows(readers.stMast, "ItemTaxRate", ["ITCode", "EffDate", "GSTItNo"])) {
+        const k = n(r.ITCode), t = d(r.EffDate) || 0;
+        if (!best.has(k) || t >= best.get(k).t) best.set(k, { t, g: n(r.GSTItNo) });
+      }
+      for (const [k, v] of best) if (hsnByGst.get(v.g)) D.hsn.set(k, hsnByGst.get(v.g));
+      const sp = rows(readers.stMast, "SysParm", ["SI_BankersDetail", "SI_TermsDetail"])[0] || {};
+      if (ml(sp.SI_BankersDetail).length) D.company.bankers = ml(sp.SI_BankersDetail);
+      if (ml(sp.SI_TermsDetail).length) D.company.terms = ml(sp.SI_TermsDetail);
+    }
+
+    if (readers.stMast) {
+      await say("Items padh rahe hain…");
+      for (const it of rows(readers.stMast, "Item", ["Itcode", "ITName"])) D.items.set(n(it.Itcode), s(it.ITName));
+      for (const b of rows(readers.stMast, "BookMast", ["BKisno", "BKName", "BKPrefix"]))
+        D.books.set(n(b.BKisno), { name: s(b.BKName), prefix: s(b.BKPrefix) });
+    }
+
+    // ---- Ledger (AcTranYY) ----
+    const yearsSet = new Set();
+    for (const { year, reader } of readers.acTran) {
+      yearsSet.add(year);
+      await say(`Ledger ${year}-${String((year + 1) % 100).padStart(2, "0")} padh rahe hain…`);
+      for (const b of rows(reader, "AcBal", ["AcCode", "AcOpBal"])) {
+        const code = s(b.AcCode);
+        if (!D.opening.has(code)) D.opening.set(code, new Map());
+        D.opening.get(code).set(year, n(b.AcOpBal));
+      }
+      const gl = rows(reader, "GRLedger", [
+        "GlVtSeries", "GlFinYear", "GlVtSSR", "GlVhno", "GlIsno", "GlDate", "GlAcCode", "GlPart",
+        "GlAmount", "GlRefNo", "GlTranID", "GLQty", "GLRate", "GlShowSNo", "GLBag",
+      ]);
+      for (const r of gl) {
+        const date = d(r.GlDate);
+        const code = s(r.GlAcCode);
+        if (date == null || !code) continue;
+        const key = s(r.GlTranID) || [year, r.GlVtSeries, r.GlFinYear, r.GlVtSSR, r.GlVhno].join("|");
+        const row = {
+          year,
+          date,
+          series: n(r.GlVtSeries),
+          vhno: n(r.GlVhno),
+          ref: s(r.GlRefNo),
+          part: s(r.GlPart),
+          amt: n(r.GlAmount),
+          code,
+          key,
+          sno: n(r.GlShowSNo) || n(r.GlIsno),
+          qty: n(r.GLQty),
+          rate: n(r.GLRate),
+          bag: n(r.GLBag),
+        };
+        if (!D.ledger.has(code)) D.ledger.set(code, []);
+        D.ledger.get(code).push(row);
+        if (!D.vouchers.has(key)) D.vouchers.set(key, []);
+        D.vouchers.get(key).push(row);
+      }
+    }
+    for (const list of D.ledger.values())
+      list.sort((a, b) => a.date - b.date || a.series - b.series || a.vhno - b.vhno || a.sno - b.sno);
+
+    // ---- Bills (STTranYY) ----
+    for (const { year, reader } of readers.stTran) {
+      yearsSet.add(year);
+      await say(`Bills ${year}-${String((year + 1) % 100).padStart(2, "0")} padh rahe hain…`);
+      const stock = rows(reader, "Stock", [
+        "STSR", "STBKIsNo", "STSeqno", "STISeqno", "ITCode", "Rate", "Amount", "STQty", "STBag",
+        "TaxAmt", "IGSTAmt", "CGSTAmt", "SGSTAmt", "TaxOnAmt", "STidno",
+      ]);
+      const byBill = new Map();
+      for (const r of stock) {
+        const k = [s(r.STSR), n(r.STBKIsNo), n(r.STSeqno)].join("|");
+        const it = {
+          sno: n(r.STISeqno),
+          hsn: D.hsn.get(n(r.ITCode)) || "",
+          item: D.items.get(n(r.ITCode)) || "Item " + n(r.ITCode),
+          bags: n(r.STBag),
+          qty: n(r.STQty),
+          rate: n(r.Rate),
+          amount: n(r.Amount),
+          gst: n(r.IGSTAmt) + n(r.CGSTAmt) + n(r.SGSTAmt) || n(r.TaxAmt),
+        };
+        if (!byBill.has(k)) byBill.set(k, []);
+        byBill.get(k).push(it);
+        const id = s(r.STidno);
+        if (id) {
+          if (!D.itemsById.has(id)) D.itemsById.set(id, []);
+          D.itemsById.get(id).push(it);
+        }
+      }
+      for (const list of D.itemsById.values()) list.sort((a, b) => a.sno - b.sno);
+      const hdr = rows(reader, "SIHdr", [
+        "SISR", "SIBKIsNo", "SISeqno", "SIDate", "PTAcCode", "B1AcCode", "NetAmt", "RecdAmt", "DueDt",
+        "Transport", "TRStation", "Truck", "GrNo", "CGSTAmt", "SGSTAmt", "IGSTAmt", "TaxOnAmt", "DealerName", "EWayBillNo",
+        "SIidno", "RndAmt", "GSTCessAmt", "TCSAmt", "PymtFlag", "Destination", "RefNo", "RefDate",
+      ]);
+      for (const h of hdr) {
+        const code = s(h.PTAcCode);
+        if (!code) continue;
+        const bk = D.books.get(n(h.SIBKIsNo));
+        const id = s(h.SIidno);
+        const items = (D.itemsById.get(id) || byBill.get([s(h.SISR), n(h.SIBKIsNo), n(h.SISeqno)].join("|")) || []).sort((a, b) => a.sno - b.sno);
+        const pa = D.accounts.get(code) || {};
+        const bill = {
+          id,
+          party: { code, name: pa.name || s(h.DealerName) || code, station: pa.station || "", address: pa.address || "", gst: pa.gst || "", mobile: pa.mobile || "", pan: pa.pan || (pa.gst || "").slice(2, 12) },
+          pay: n(h.RecdAmt) >= n(h.NetAmt) - 1 && n(h.NetAmt) > 0 ? "CASH" : "CREDIT",
+          kind: s(h.SISR).toUpperCase() || "SIN",
+          refNo: s(h.RefNo),
+          refDate: d(h.RefDate),
+          deliverAt: s(h.Destination) || s(h.TRStation),
+          transportName: s(h.Transport),
+          cgst: n(h.CGSTAmt),
+          sgst: n(h.SGSTAmt),
+          igst: n(h.IGSTAmt),
+          cess: n(h.GSTCessAmt),
+          tcs: n(h.TCSAmt),
+          rnd: n(h.RndAmt),
+          year,
+          date: d(h.SIDate),
+          no: (bk && bk.prefix ? bk.prefix + "/" : "") + n(h.SISeqno),
+          book: bk ? bk.name : "",
+          net: n(h.NetAmt),
+          recd: n(h.RecdAmt),
+          taxable: n(h.TaxOnAmt),
+          gst: n(h.CGSTAmt) + n(h.SGSTAmt) + n(h.IGSTAmt),
+          due: d(h.DueDt),
+          broker: (D.accounts.get(s(h.B1AcCode)) || {}).name || "",
+          transport: [s(h.Transport), s(h.TRStation)].filter(Boolean).join(", "),
+          truck: s(h.Truck),
+          gr: s(h.GrNo),
+          ewb: s(h.EWayBillNo),
+          dealer: s(h.DealerName),
+          items,
+        };
+        if (!D.bills.has(code)) D.bills.set(code, []);
+        D.bills.get(code).push(bill);
+        if (id) D.billById.set(id, bill);
+        if (bk && /purchase/i.test(bk.name) && bill.kind === "SIN") bill.kind = "PIN";
+        applyBreakup(D, bill, id && D.vouchers.get(id), code);
+      }
+    }
+    for (const list of D.bills.values()) list.sort((a, b) => (a.date || 0) - (b.date || 0));
+
+    // ---- Outstanding (AcMast.GlOs) ----
+    await say("Bill-wise outstanding jod rahe hain…");
+    const os = rows(am, "GlOs", [
+      "GlVtSeries", "GlFinYear", "GlVhno", "GlDate", "GlAcCode", "GlDueDate", "GlOsType", "GlOsAmt",
+      "GlRebate", "GlOsId", "GlDLCode",
+    ]);
+    // Series-0 "On Account" rows are each year's carried-forward unadjusted balance.
+    // Only the latest real year's carry-forward counts, plus on-account entries from that year on.
+    const isOA = (r) => /^on\s*account$/i.test(s(r.GlOsId)) || !s(r.GlOsId);
+    const fyOf = (r) => n(r.GlOsFinYear) || n(r.GlFinYear);
+    const lastOpen = new Map();
+    for (const r of os) {
+      if (n(r.GlVtSeries) !== 0 || !isOA(r) || fyOf(r) >= 9000) continue;
+      const c = s(r.GlAcCode);
+      lastOpen.set(c, Math.max(lastOpen.get(c) || 0, fyOf(r)));
+    }
+    const groups = new Map();
+    for (const r of os) {
+      if (fyOf(r) >= 9000) continue;
+      if (isOA(r)) {
+        const y = lastOpen.get(s(r.GlAcCode)) || 0;
+        if (n(r.GlVtSeries) === 0 ? fyOf(r) !== y : n(r.GlFinYear) < y) continue;
+      }
+      const type = s(r.GlOsType);
+      if (type !== "0" && type !== "1" && type !== "2") continue;
+      const code = s(r.GlAcCode);
+      if (!D.accounts.has(code)) continue;
+      let id = s(r.GlOsId);
+      const onAcc = /^on\s*account$/i.test(id) || !id;
+      const ofy = n(r.GlOsFinYear) || n(r.GlFinYear);
+      const gk = code + "|" + ofy + "|" + (onAcc ? `OA|${n(r.GlFinYear)}|${n(r.GlVtSeries)}|${n(r.GlVhno)}` : id);
+      let g = groups.get(gk);
+      if (!g) {
+        g = { code, id, onAcc, broker: "", date: null, due: null, billAmt: 0, adj: 0, rebate: 0, pending: 0, series: n(r.GlVtSeries), vhno: n(r.GlVhno), fy: n(r.GlFinYear), receipts: [] };
+        groups.set(gk, g);
+      }
+      const amt = n(r.GlOsAmt);
+      const dl = s(r.GlDLCode);
+      if (dl && (type === "1" || !g.broker)) g.broker = dl;
+      if (type === "1") {
+        g.billAmt += amt;
+        g.date = d(r.GlDate) ?? g.date;
+        g.due = d(r.GlDueDate) ?? g.due;
+        g.series = n(r.GlVtSeries);
+        g.vhno = n(r.GlVhno);
+        g.fy = n(r.GlFinYear);
+      } else if (type === "2") {
+        g.adj += amt;
+        g.rebate += n(r.GlRebate);
+        g.receipts.push({ date: d(r.GlDate), amt, series: n(r.GlVtSeries), vhno: n(r.GlVhno) });
+      } else {
+        g.pending += amt;
+        if (g.date == null) g.date = d(r.GlDate);
+        if (g.due == null) g.due = d(r.GlDueDate);
+      }
+    }
+    for (const g of groups.values()) {
+      if (g.onAcc && g.series === 0) {
+        g.label = "Opening (on account)";
+        g.billAmt = g.billAmt || g.pending;
+      } else if (g.onAcc) {
+        g.label = "On account";
+        g.billAmt = g.billAmt || g.pending;
+      } else if (g.id.startsWith("@")) {
+        g.label = g.id.slice(1).replace(/^[A-Z]{2,3}-/, "").replace(/\/0+(\d)/, "/$1");
+      } else {
+        g.label = g.id || (D.vt.get(g.series) || "Vch") + " " + g.vhno;
+      }
+      g.kind = D.vt.get(g.series) || "";
+      if (!D.os.has(g.code)) D.os.set(g.code, []);
+      D.os.get(g.code).push(g);
+    }
+    for (const list of D.os.values()) list.sort((a, b) => (a.date || 0) - (b.date || 0));
+
+    D.years = [...yearsSet].sort();
+    return D;
+  }
+
+  const isTaxLine = (code, nm, grp) => /^(C|S|I)GST/i.test(code) || /duties|tax/i.test(grp) || /\b(gst|tax|cess|tcs)\b/i.test(nm);
+  const isItemLine = (r) => /^IT\d/i.test(r.code) || (r.qty && r.rate);
+  // Other charges and round off from the accounting entry. Signs are made positive for "adds to bill".
+  function applyBreakup(D, bill, v, partyCode) {
+    bill.charges = [];
+    bill.rndLine = null;
+    if (!v) return;
+    const pl = v.find((r) => r.code === partyCode);
+    const f = pl && pl.amt ? -Math.sign(pl.amt) : 1;
+    for (const r of v) {
+      if (r.code === partyCode) continue;
+      const a = D.accounts.get(r.code);
+      const nm = a ? a.name : r.code;
+      const grp = a ? a.group : "";
+      if (isItemLine(r)) continue;
+      if (isTaxLine(r.code, nm, grp)) continue;
+      if (/round/i.test(nm)) { bill.rndLine = (bill.rndLine || 0) + f * r.amt; continue; }
+      if (/cash|bank/i.test(grp) || r.code === "CASH") continue; // paid / received with the bill
+      const ex = bill.charges.find((x) => x.name === nm);
+      if (ex) ex.amt += f * r.amt; else bill.charges.push({ name: nm, amt: f * r.amt });
+    }
+  }
+
+  // Purchase bills: from bill headers (PIN) and, if a purchase voucher has no header, from the ledger entry itself
+  function purchases(D, from, to) {
+    const out = [];
+    const seen = new Set();
+    for (const b of D.billById.values()) {
+      if (b.kind !== "PIN" || b.date == null || b.date < from || b.date > to) continue;
+      out.push(b);
+      seen.add(b.id);
+    }
+    for (const [key, rows] of D.vouchers) {
+      const r0 = rows[0];
+      if (seen.has(key) || r0.date < from || r0.date > to) continue;
+      const vt = D.vt.get(r0.series) || "";
+      if (!/purchase|pur\.?\s*inv/i.test(vt) || /return/i.test(vt)) continue;
+      const lines = rows.map((r) => ({ ...r, acc: D.accounts.get(r.code) }));
+      const party = lines
+        .filter((l) => l.amt > 0 && l.acc && !isItemLine(l) && !isTaxLine(l.code, l.acc.name, l.acc.group) && !/round|cash|bank/i.test(l.acc.name + " " + l.acc.group))
+        .sort((a, b) => b.amt - a.amt)[0];
+      if (!party) continue;
+      const pa = party.acc;
+      const items = lines.filter(isItemLine).map((l, i) => ({
+        sno: i + 1, hsn: D.hsn.get(parseInt(String(l.code).replace(/\D/g, ""), 10)) || "", item: l.acc ? l.acc.name : l.code, bags: l.bag, qty: l.qty, rate: l.rate, amount: -l.amt, gst: 0,
+      }));
+      const tax = (re) => lines.filter((l) => re.test(l.code) || (l.acc && re.test(l.acc.name))).reduce((s, l) => s - l.amt, 0);
+      const igst = tax(/^IGST/i), cgst = tax(/^CGST/i), sgst = tax(/^SGST/i);
+      const basic = items.reduce((s, x) => s + x.amount, 0);
+      const m = /bill\.?\s*no\.?\s*([^\s\[]+)/i.exec(r0.part || "");
+      const b = {
+        id: key, kind: "PIN", year: r0.year, date: r0.date, no: r0.ref || (m ? m[1] : String(r0.vhno)), refNo: m ? m[1] : r0.ref, refDate: null,
+        book: vt, party: { code: pa.code, name: pa.name, station: pa.station || "", address: pa.address || "", gst: pa.gst || "", mobile: pa.mobile || "", pan: pa.pan || (pa.gst || "").slice(2, 12) },
+        net: party.amt, recd: 0, igst, cgst, sgst, cess: 0, tcs: 0, gst: igst + cgst + sgst, items,
+        broker: "", transport: "", transportName: "", truck: "", gr: "", ewb: "", deliverAt: "", pay: "CREDIT", due: null,
+      };
+      applyBreakup(D, b, rows, pa.code);
+      b.taxable = basic + b.charges.reduce((s, x) => s + x.amt, 0);
+      if (items.length && b.gst) items.forEach((x) => (x.gst = (b.gst * x.amount) / (basic || 1)));
+      out.push(b);
+    }
+    return out.sort((a, b) => a.date - b.date);
+  }
+
+  function counterparts(D, row) {
+    const v = D.vouchers.get(row.key) || [];
+    const opp = v.filter((x) => x !== row && x.code !== row.code && Math.sign(x.amt) === -Math.sign(row.amt) && x.amt !== 0);
+    const named = opp
+      .map((x) => ({ x, a: D.accounts.get(x.code) }))
+      .filter((o) => o.a)
+      .sort((p, q) => Math.abs(q.x.amt) - Math.abs(p.x.amt));
+    const out = named.map((o) => o.a.name);
+    if (opp.some((x) => !D.accounts.has(x.code))) out.unshift("Goods");
+    return out;
+  }
+
+  const NON_PARTY = /sales|purchase|duties|tax|cash|bank|expense|income|goods|stock|capital|profit|production|consum|mandi|tds|vat/i;
+  function mainLine(D, lines) {
+    const score = (l) => {
+      const a = D.accounts.get(l.code);
+      if (!a) return -1;
+      if (a.billWise) return 4;
+      if (/debtor|creditor|party/i.test(a.group)) return 3;
+      if (!NON_PARTY.test(a.group)) return 2;
+      if (/cash|bank/i.test(a.group)) return 1;
+      return 0;
+    };
+    let best = 0;
+    lines.forEach((l, i) => {
+      const s1 = score(l), s0 = score(lines[best]);
+      if (s1 > s0 || (s1 === s0 && Math.abs(l.amt) > Math.abs(lines[best].amt))) best = i;
+    });
+    return best;
+  }
+
+  // Day book: every voucher between from and to (UTC ms, inclusive)
+  function daybook(D, from, to) {
+    const out = [];
+    for (const rows of D.vouchers.values()) {
+      const r0 = rows[0];
+      if (r0.date < from || r0.date > to) continue;
+      const merged = new Map();
+      for (const r of rows) merged.set(r.code, (merged.get(r.code) || 0) + r.amt);
+      const lines = [...merged.entries()]
+        .filter(([, a]) => Math.abs(a) >= 0.005)
+        .map(([code, amt]) => ({ code, amt, name: (D.accounts.get(code) || {}).name || "" }))
+        .sort((a, b) => a.amt - b.amt);
+      if (!lines.length) continue;
+      const m = mainLine(D, lines);
+      out.push({
+        key: r0.key,
+        date: r0.date,
+        series: r0.series,
+        vt: D.vt.get(r0.series) || "Voucher",
+        no: r0.ref || String(r0.vhno),
+        vhno: r0.vhno,
+        narr: (rows.find((r) => r.code === lines[m].code) || r0).part,
+        lines,
+        main: m,
+        total: lines.reduce((s, l) => s + (l.amt < 0 ? -l.amt : 0), 0),
+        bill: D.billById.get(r0.key) || null,
+        items: D.billById.has(r0.key) ? null : D.itemsById.get(r0.key) || null,
+      });
+    }
+    return out.sort((a, b) => a.date - b.date || a.series - b.series || a.vhno - b.vhno);
+  }
+
+  function dayRange(D) {
+    let min = null, max = null;
+    for (const rows of D.vouchers.values()) {
+      const t = rows[0].date;
+      if (min == null || t < min) min = t;
+      if (max == null || t > max) max = t;
+    }
+    return { min, max };
+  }
+
+  function pendingBills(D) {
+    const out = [];
+    for (const list of D.os.values()) for (const g of list) if (Math.abs(g.pending) >= 0.5) out.push(g);
+    return out;
+  }
+
+  // ---- Offline snapshot: everything the mobile needs, for the last few years ----
+  function toSnapshot(D, meta, keepYears) {
+    const years = (D.years || []).slice().sort((a, b) => a - b);
+    const last = years.length ? years[years.length - 1] : new Date().getUTCFullYear();
+    const fromYear = last - (keepYears || 2) + 1;
+    const start = Date.UTC(fromYear, 3, 1);
+    const accounts = [...D.accounts.values()].map((a) => [a.code, a.name, a.group, a.station, a.mobile, a.gst, a.billWise ? 1 : 0, a.address, a.pan]);
+    const keys = [], kIdx = new Map();
+    const ki = (k) => { if (!kIdx.has(k)) { kIdx.set(k, keys.length); keys.push(k); } return kIdx.get(k); };
+    const opening = [], rows = [];
+    for (const [code, list] of D.ledger) {
+      const op = D.opening.get(code);
+      let o = op && op.size ? op.get(Math.min(...op.keys())) || 0 : 0;
+      for (const r of list) {
+        if (r.date < start) { o += r.amt; continue; }
+        rows.push([r.date, r.series, r.vhno, r.ref, r.part, Math.round(r.amt * 100) / 100, code, ki(r.key), r.sno, r.qty || 0, r.rate || 0, r.bag || 0, r.year]);
+      }
+      if (Math.abs(o) >= 0.005) opening.push([code, Math.round(o * 100) / 100]);
+    }
+    const bills = [];
+    for (const b of D.billById.values()) if (b.date != null && b.date >= start) bills.push(b);
+    const os = [];
+    for (const list of D.os.values())
+      for (const g of list)
+        if (Math.abs(g.pending) >= 0.5 || (g.date != null && g.date >= start))
+          os.push([g.code, g.label, g.kind, g.date, g.due, g.fy, g.billAmt, g.adj, g.pending, g.broker, g.onAcc ? 1 : 0, g.rebate || 0, g.id]);
+    return {
+      fmt: 1, meta, fromYear, years: years.filter((y) => y >= fromYear),
+      company: D.company, vt: [...D.vt.entries()], accounts, keys, rows, opening, bills, os,
+    };
+  }
+
+  function fromSnapshot(S) {
+    const D = {
+      company: S.company, vt: new Map(S.vt), accounts: new Map(), groups: new Map(), items: new Map(), books: new Map(),
+      ledger: new Map(), vouchers: new Map(), opening: new Map(), bills: new Map(), billById: new Map(), itemsById: new Map(),
+      os: new Map(), hsn: new Map(), years: S.years,
+    };
+    for (const [code, name, group, station, mobile, gst, bw, address, pan] of S.accounts)
+      D.accounts.set(code, { code, name, group, station, mobile, gst, billWise: !!bw, address, pan, phone: "" });
+    for (const [code, v] of S.opening) D.opening.set(code, new Map([[S.fromYear, v]]));
+    for (const [date, series, vhno, ref, part, amt, code, k, sno, qty, rate, bag, year] of S.rows) {
+      const r = { date, series, vhno, ref, part, amt, code, key: S.keys[k], sno, qty, rate, bag, year };
+      if (!D.ledger.has(code)) D.ledger.set(code, []);
+      D.ledger.get(code).push(r);
+      if (!D.vouchers.has(r.key)) D.vouchers.set(r.key, []);
+      D.vouchers.get(r.key).push(r);
+    }
+    for (const list of D.ledger.values()) list.sort((a, b) => a.date - b.date || a.series - b.series || a.vhno - b.vhno || a.sno - b.sno);
+    for (const b of S.bills) {
+      D.billById.set(b.id, b);
+      const c = b.party && b.party.code;
+      if (c) { if (!D.bills.has(c)) D.bills.set(c, []); D.bills.get(c).push(b); }
+    }
+    for (const list of D.bills.values()) list.sort((a, b) => (a.date || 0) - (b.date || 0));
+    for (const [code, label, kind, date, due, fy, billAmt, adj, pending, broker, onAcc, rebate, id] of S.os) {
+      if (!D.os.has(code)) D.os.set(code, []);
+      D.os.get(code).push({ code, label, kind, date, due, fy, billAmt, adj, pending, broker, onAcc: !!onAcc, rebate, id, receipts: [] });
+    }
+    for (const list of D.os.values()) list.sort((a, b) => (a.date || 0) - (b.date || 0));
+    return D;
+  }
+
+  root.Core = { build, counterparts, daybook, dayRange, pendingBills, purchases, toSnapshot, fromSnapshot };
+})(typeof window !== "undefined" ? window : globalThis);
+</script>
+<script>window.PARTY_KHATA_CLOUD=true</script><script>(function () {
+  "use strict";
+  const $ = (sel, el = document) => el.querySelector(sel);
+  const esc = (v) =>
+    String(v ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+  const nf = new Intl.NumberFormat("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  const qf = new Intl.NumberFormat("en-IN", { maximumFractionDigits: 3 });
+  const amt = (x) => (Math.abs(x) < 0.005 ? "" : nf.format(Math.abs(x)));
+  const bal = (x) => (Math.abs(x) < 0.005 ? "0.00" : nf.format(Math.abs(x)) + (x < 0 ? " Dr" : " Cr"));
+  const MON = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+  const dt = (t) => {
+    if (t == null) return "";
+    const d = new Date(t);
+    return String(d.getUTCDate()).padStart(2, "0") + " " + MON[d.getUTCMonth()] + " " + d.getUTCFullYear();
+  };
+  const isoOf = (t) => new Date(t).toISOString().slice(0, 10);
+  const parseIso = (s) => (s ? Date.UTC(+s.slice(0, 4), +s.slice(5, 7) - 1, +s.slice(8, 10)) : null);
+  const now = new Date();
+  const TODAY = Date.UTC(now.getFullYear(), now.getMonth(), now.getDate());
+  const DAY = 86400000;
+
+  let D = null;
+  function setFy(v) {
+    st.fy = v;
+    const ys = D && D.years && D.years.length ? D.years : [new Date().getFullYear()];
+    if (v === "all") { st.from = Date.UTC(ys[0], 3, 1); st.to = Date.UTC(ys[ys.length - 1] + 1, 2, 31); }
+    else if (v !== "custom") { st.from = Date.UTC(+v, 3, 1); st.to = Date.UTC(+v + 1, 2, 31); }
+  }
+  const fyLabel = (y) => y + "-" + String((y + 1) % 100).padStart(2, "0");
+  const SERVER_MODE = !!window.PARTY_KHATA_SERVER && location.protocol.startsWith("http");
+  let SERVER = SERVER_MODE;
+  const CLOUD_MODE = !!window.PARTY_KHATA_CLOUD;
+  let OFFLINE = false;
+  // tiny IndexedDB key-value store for the offline copy
+  const idb = (() => {
+    let dbp = null;
+    const open = () => (dbp ||= new Promise((res, rej) => {
+      const r = indexedDB.open("party-khata", 1);
+      r.onupgradeneeded = () => r.result.createObjectStore("kv");
+      r.onsuccess = () => res(r.result);
+      r.onerror = () => rej(r.error);
+    }));
+    const tx = async (mode, fn) => {
+      const db = await open();
+      return new Promise((res, rej) => {
+        const t = db.transaction("kv", mode);
+        const q = fn(t.objectStore("kv"));
+        t.oncomplete = () => res(q && q.result);
+        t.onerror = () => rej(t.error);
+      });
+    };
+    return {
+      get: (k) => tx("readonly", (s) => s.get(k)).catch(() => null),
+      set: (k, v) => tx("readwrite", (s) => s.put(v, k)).catch(() => null),
+    };
+  })();
+  const store = {
+    get(k) { try { return localStorage.getItem(k); } catch { return null; } },
+    set(k, v) { try { localStorage.setItem(k, v); } catch {} },
+  };
+  const st = {
+    party: null, tab: "ledger", from: null, to: null, onlyPending: true, onlyActive: true, q: "", open: new Set(),
+    pFy: null, pFrom: null, pTo: null, pq: "", psort: "new", pShown: 60, openP: new Set(),
+    bsort: "old", fy: null, fFrom: null, fTo: null, aMin: null, aMax: null, showFilter: false, billsShown: 200, openOs: new Set(),
+    sec: "day", dbFrom: null, dbTo: null, side: "dr", minDays: 0, rq: "", sort: "amt", openB: new Set(), openV: new Set(), lastReport: null,
+  };
+
+  // ---------------- Loading ----------------
+  const status = (msg, isErr) => {
+    const el = $("#status");
+    el.textContent = msg || "";
+    el.classList.toggle("err", !!isErr);
+  };
+  const tick = () => new Promise((r) => setTimeout(r, 30));
+
+  function classify(files) {
+    // group by folder so a parent folder with many companies still works
+    const dirs = new Map();
+    for (const f of files) {
+      const path = f.webkitRelativePath || f.name;
+      const dir = path.includes("/") ? path.slice(0, path.lastIndexOf("/")) : "";
+      const nm = f.name.toLowerCase();
+      let kind = null,
+        year = null,
+        m;
+      if (nm === "acmast.mdb") kind = "acMast";
+      else if (nm === "stmast.mdb") kind = "stMast";
+      else if ((m = nm.match(/^actran(\d{2})\.mdb$/))) (kind = "acTran"), (year = 2000 + +m[1]);
+      else if ((m = nm.match(/^sttran(\d{2})\.mdb$/))) (kind = "stTran"), (year = 2000 + +m[1]);
+      if (!kind) continue;
+      if (!dirs.has(dir)) dirs.set(dir, { dir, acMast: null, stMast: null, acTran: [], stTran: [] });
+      const g = dirs.get(dir);
+      if (kind === "acTran" || kind === "stTran") g[kind].push({ year, file: f });
+      else g[kind] = f;
+    }
+    return [...dirs.values()].filter((g) => g.acMast);
+  }
+
+  async function handleFiles(fileList) {
+    const sets = classify([...fileList]);
+    if (!sets.length) {
+      status("AcMast.mdb nahi mila. Wo folder chunein jisme AcMast.mdb, AcTranYY.mdb aur STTranYY.mdb ho.", true);
+      return;
+    }
+    if (sets.length === 1) return loadSet(sets[0]);
+    const box = $("#pick");
+    box.hidden = false;
+    box.innerHTML =
+      "<p>Is folder me " + sets.length + " companies ka data mila. Kaunsi kholni hai?</p>" +
+      sets.map((g, i) => `<button type="button" class="btn" data-i="${i}">${esc(g.dir || "(chuna hua)")}</button>`).join("");
+    box.onclick = (e) => {
+      const b = e.target.closest("button[data-i]");
+      if (b) {
+        box.hidden = true;
+        loadSet(sets[+b.dataset.i]);
+      }
+    };
+  }
+
+  async function loadSet(g) {
+    const btns = document.querySelectorAll("#load .btn");
+    btns.forEach((b) => (b.disabled = true));
+    try {
+      const open = async (f) => {
+        status(f.name + " khol rahe hain…");
+        await tick();
+        return new MDBReader(Buffer.from(await f.arrayBuffer()));
+      };
+      const readers = { acMast: await open(g.acMast), stMast: g.stMast ? await open(g.stMast) : null, acTran: [], stTran: [] };
+      for (const t of g.acTran.sort((a, b) => a.year - b.year)) readers.acTran.push({ year: t.year, reader: await open(t.file) });
+      for (const t of g.stTran.sort((a, b) => a.year - b.year)) readers.stTran.push({ year: t.year, reader: await open(t.file) });
+      D = await Core.build(readers, async (m) => {
+        status(m);
+        await tick();
+      });
+      D.loaded = [g.acMast.name, g.stMast && g.stMast.name, ...g.acTran.map((t) => t.file.name), ...g.stTran.map((t) => t.file.name)].filter(Boolean);
+      const ys = D.years.length ? D.years : [new Date().getFullYear()];
+      setFy(ys[ys.length - 1]);
+      status("");
+      showApp();
+    } catch (err) {
+      console.error(err);
+      status("File padhne me dikkat aayi: " + (err && err.message ? err.message : err) + ". Software band karke dobara koshish karein.", true);
+    } finally {
+      btns.forEach((b) => (b.disabled = false));
+    }
+  }
+
+  // ---------------- Server mode (laptop par chal raha program) ----------------
+  class PinError extends Error {}
+  async function api(p) {
+    const ctl = new AbortController();
+    const tmo = setTimeout(() => ctl.abort(), p.startsWith("/api/snapshot") ? 120000 : 10000);
+    let r;
+    try {
+      r = await fetch(p, { headers: { "X-Pin": store.get("pk-pin") || "" }, cache: "no-store", signal: ctl.signal });
+    } catch (err) {
+      throw new Error("Laptop se juda nahi");
+    } finally {
+      clearTimeout(tmo);
+    }
+    if (r.status === 401) throw new PinError("PIN");
+    const j = await r.json().catch(() => ({}));
+    if (!r.ok) throw new Error(j.error || "Laptop se jawab nahi aaya (" + r.status + ")");
+    return j;
+  }
+  function showPin(wrong) {
+    $("#app").hidden = true;
+    $("#load").hidden = false;
+    $("#pinBox").hidden = false;
+    status(wrong ? "PIN galat hai, dobara daalein." : "", wrong);
+    $("#pinIn").value = "";
+    $("#pinIn").focus();
+  }
+  let lastFetch = 0;
+  async function serverLoad(silent) {
+    if (!silent) status("Laptop se data aa raha hai…");
+    try {
+      const meta = await api("/api/meta");
+      if (D && !OFFLINE && D.version === meta.version && silent) {
+        lastFetch = Date.now();
+        syncSnapshot(meta);
+        return;
+      }
+      const { parties } = await api("/api/parties");
+      const keepParty = st.party;
+      const first = !D;
+      D = {
+        version: meta.version,
+        company: meta.company,
+        years: meta.years,
+        vt: new Map(meta.vt),
+        accounts: new Map(parties.map((p) => [p.code, { ...p, address: "" }])),
+        pending: new Map(parties.map((p) => [p.code, p.pending])),
+        active: new Set(parties.filter((p) => p.active).map((p) => p.code)),
+        ledger: new Map(), bills: new Map(), os: new Map(), opening: new Map(), got: new Set(),
+        loaded: meta.files, lastChange: meta.lastChange, serverError: meta.error,
+        dayRange: meta.dayRange || { min: null, max: null },
+      };
+      if (first || st.from == null) {
+        const ys = D.years.length ? D.years : [new Date().getFullYear()];
+        setFy(ys[ys.length - 1]);
+      }
+      lastFetch = Date.now();
+      SERVER = true;
+      OFFLINE = false;
+      status("");
+      showApp();
+      if (keepParty && D.accounts.has(keepParty) && st.sec === "ledger") await fetchParty(keepParty);
+      syncSnapshot(meta);
+    } catch (e) {
+      if (e instanceof PinError) return showPin(!!store.get("pk-pin"));
+      if (!OFFLINE && (await loadOffline())) return;
+      if (OFFLINE) return syncPill();
+      if (!silent) {
+        $("#app").hidden = true;
+        $("#load").hidden = false;
+        status((e.message || String(e)) + ". Laptop chalu hai, Party Khata program chal raha hai, aur mobile usi WiFi par hai, ye check karein.", true);
+        $("#retry").hidden = false;
+      }
+    }
+  }
+  // ---------------- Offline copy ----------------
+  const snapKey = (m) => (m.lastChange || 0) + "|" + (m.version || 0);
+  let syncing = false;
+  async function syncSnapshot(meta) {
+    if (syncing || !SERVER_MODE) return;
+    const cur = await idb.get("snapMeta");
+    if (cur && cur.key === snapKey(meta)) { D.savedAt = cur.savedAt; return syncPill(); }
+    if (cur && Date.now() - cur.savedAt < 3 * 60 * 1000) { D.savedAt = cur.savedAt; return syncPill(); }
+    syncing = true;
+    syncPill("Mobile me save ho raha hai…");
+    try {
+      const data = await api("/api/snapshot");
+      const savedAt = Date.now();
+      await idb.set("snap", { savedAt, data });
+      await idb.set("snapMeta", { key: snapKey(meta), savedAt });
+      if (D && !OFFLINE) D.savedAt = savedAt;
+    } catch (e) {
+      /* next time */
+    } finally {
+      syncing = false;
+      syncPill();
+    }
+  }
+  async function loadOffline() {
+    if (!SERVER_MODE) return false;
+    const snap = await idb.get("snap");
+    if (!snap || !snap.data) return false;
+    try {
+      const S = snap.data;
+      const keepParty = st.party;
+      D = Core.fromSnapshot(S);
+      D.version = "offline";
+      D.loaded = [];
+      D.lastChange = S.meta && S.meta.lastChange;
+      D.savedAt = snap.savedAt;
+      D.dayRange = Core.dayRange(D);
+      SERVER = false;
+      OFFLINE = true;
+      const ys = D.years.length ? D.years : [new Date().getFullYear()];
+      if (st.fy !== "custom" && st.fy !== "all" && !ys.includes(+st.fy)) setFy(ys[ys.length - 1]);
+      if (st.pFy != null && st.pFy !== "custom" && st.pFy !== "all" && !ys.includes(+st.pFy)) st.pFy = null;
+      if (keepParty && !D.accounts.has(keepParty)) st.party = null;
+      status("");
+      $("#pinBox").hidden = true;
+      showApp();
+      return true;
+    } catch (e) {
+      return false;
+    }
+  }
+  const whenTxt = (t) => (t ? new Date(t).toLocaleString("en-IN", { day: "2-digit", month: "short", hour: "numeric", minute: "2-digit" }) : "");
+  function syncPill(msg) {
+    const el = $("#syncPill");
+    if (!el || !(SERVER_MODE || CLOUD_MODE)) return;
+    if (msg) { el.hidden = false; el.textContent = msg; return; }
+    if (!D) return;
+    if (CLOUD_MODE) {
+      el.hidden = false;
+      el.classList.toggle("off", OFFLINE);
+      el.textContent = (OFFLINE ? "Internet nahi | " : "") + "Data: " + whenTxt(D.lastChange) + " tak";
+      return;
+    }
+    el.hidden = false;
+    el.classList.toggle("off", OFFLINE);
+    if (msg) { el.textContent = msg; return; }
+    el.textContent = OFFLINE
+      ? "Laptop se juda nahi | aakhri data: " + whenTxt(D.lastChange || D.savedAt)
+      : "Data: " + whenTxt(D.lastChange) + " tak" + (D.savedAt ? " | mobile me save" : "");
+  }
+  async function fallbackOffline() {
+    if (OFFLINE || !(await loadOffline())) return false;
+    return true;
+  }
+
+  // ---------------- Cloud (GitHub Pages) copy ----------------
+  async function decryptSnap(buf, keyStr) {
+    const b = new Uint8Array(buf);
+    if (b.length < 40 || b[0] !== 80 || b[1] !== 75 || b[2] !== 49) throw new Error("Data file theek nahi hai");
+    const raw = Uint8Array.from(atob(keyStr.replace(/-/g, "+").replace(/_/g, "/")), (c) => c.charCodeAt(0));
+    const key = await crypto.subtle.importKey("raw", raw, "AES-GCM", false, ["decrypt"]);
+    let plain;
+    try {
+      plain = await crypto.subtle.decrypt({ name: "AES-GCM", iv: b.slice(3, 15) }, key, b.slice(15));
+    } catch (e) {
+      throw new Error("Chabi galat hai");
+    }
+    const txt = await new Response(new Blob([plain]).stream().pipeThrough(new DecompressionStream("gzip"))).text();
+    return JSON.parse(txt);
+  }
+  const b64u = (bytes) => btoa(String.fromCharCode(...bytes)).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+  const b64d = (s) => Uint8Array.from(atob(s), (c) => c.charCodeAt(0));
+  function showPwBox(msg) {
+    $("#app").hidden = true;
+    $("#load").hidden = false;
+    $("#pwBox").hidden = false;
+    status(msg || "", !!msg);
+    setTimeout(() => $("#pwIn").focus(), 50);
+  }
+  async function unlockWithPassword() {
+    const pw = $("#pwIn").value;
+    if (!pw) return;
+    $("#pwGo2").disabled = true;
+    status("Khol rahe hain…");
+    try {
+      const r = await fetch("lock.json?t=" + Date.now(), { cache: "no-store" }).catch(() => null);
+      if (!r || !r.ok) { status("Is site par abhi password nahi rakha gaya. Laptop par setup page me \"Password rakhein\" karein, 3 minute baad dobara koshish karein.", true); return; }
+      const L = await r.json();
+      const base = await crypto.subtle.importKey("raw", new TextEncoder().encode(pw), "PBKDF2", false, ["deriveKey"]);
+      const k = await crypto.subtle.deriveKey({ name: "PBKDF2", salt: b64d(L.salt), iterations: L.iter, hash: "SHA-256" }, base, { name: "AES-GCM", length: 256 }, false, ["decrypt"]);
+      let raw;
+      try { raw = new Uint8Array(await crypto.subtle.decrypt({ name: "AES-GCM", iv: b64d(L.iv) }, k, b64d(L.ct))); }
+      catch (e) { status("Password galat hai. Dobara koshish karein.", true); $("#pwIn").select(); return; }
+      store.set("pk-key", b64u(raw));
+      $("#pwIn").value = "";
+      $("#pwBox").hidden = true;
+      cloudLoad(false);
+    } finally {
+      $("#pwGo2").disabled = false;
+    }
+  }
+  async function cloudLoad(silent) {
+    const m = /[#&]k=([A-Za-z0-9_-]{20,})/.exec(location.hash);
+    if (m) { store.set("pk-key", m[1]); history.replaceState(null, "", location.pathname + location.search); }
+    const key = store.get("pk-key");
+    if (!key) return showPwBox();
+    if (!silent) status("Data aa raha hai…");
+    syncPill("Data aa raha hai…");
+    let buf = null, fromNet = false;
+    try {
+      const ctl = new AbortController();
+      const t = setTimeout(() => ctl.abort(), 30000);
+      const r = await fetch("data.bin?t=" + Date.now(), { cache: "no-store", signal: ctl.signal });
+      clearTimeout(t);
+      if (r.ok) { buf = await r.arrayBuffer(); fromNet = true; }
+    } catch (e) { /* offline */ }
+    if (!buf) buf = await idb.get("cloudSnap");
+    if (!buf) {
+      status("Data nahi mil paya. Internet check karein. Agar link abhi naya bana hai to 2 minute baad dobara kholein.", true);
+      $("#retry").hidden = false;
+      return;
+    }
+    let S;
+    try {
+      S = await decryptSnap(buf, key);
+    } catch (e) {
+      if (/chabi/i.test(e.message)) { store.set("pk-key", ""); return showPwBox("Pehle wala password ya QR purana ho gaya hai. Naya password daalein."); }
+      status(e.message, true);
+      return;
+    }
+    if (fromNet) idb.set("cloudSnap", buf);
+    const pushed = (S.meta && S.meta.pushedAt) || 0;
+    if (silent && D && D.version === pushed) { OFFLINE = !fromNet; return syncPill(); }
+    const keepParty = st.party;
+    D = Core.fromSnapshot(S);
+    D.version = pushed;
+    D.loaded = [];
+    D.lastChange = S.meta && S.meta.lastChange;
+    D.pushedAt = pushed;
+    D.dayRange = Core.dayRange(D);
+    SERVER = false;
+    OFFLINE = !fromNet;
+    lastFetch = Date.now();
+    const ys = D.years.length ? D.years : [new Date().getFullYear()];
+    if (st.fy == null || (st.fy !== "custom" && st.fy !== "all" && !ys.includes(+st.fy))) setFy(ys[ys.length - 1]);
+    if (keepParty && !D.accounts.has(keepParty)) st.party = null;
+    status("");
+    showApp();
+  }
+
+  async function fetchParty(code) {
+    st.loading = true;
+    renderParty();
+    try {
+      const p = await api("/api/party?code=" + encodeURIComponent(code));
+      const a = D.accounts.get(code);
+      Object.assign(a, p.account);
+      D.ledger.set(code, p.ledger);
+      D.bills.set(code, p.bills);
+      D.os.set(code, p.os);
+      D.opening.set(code, new Map(p.opening));
+      D.got.add(code);
+    } catch (e) {
+      if (e instanceof PinError) return showPin(true);
+      st.loading = false;
+      if (await fallbackOffline()) { st.party = D.accounts.has(code) ? code : null; return renderParty(); }
+      status(e.message, true);
+    } finally {
+      st.loading = false;
+    }
+    if (st.party === code) renderParty();
+  }
+
+  // ---------------- App shell ----------------
+  function showApp() {
+    $("#load").hidden = true;
+    $("#app").hidden = false;
+    $("#coName").textContent = D.company.name || "Company";
+    $("#coMeta").textContent = [D.company.address, D.company.gst && "GSTIN " + D.company.gst].filter(Boolean).join("  |  ");
+    $("#loaded").textContent =
+      (D.lastChange ? "Data me aakhri badlav: " + new Date(D.lastChange).toLocaleString("en-IN", { day: "2-digit", month: "short", hour: "numeric", minute: "2-digit" }) + "  |  " : "") +
+      "Files: " + D.loaded.join(", ") + (D.serverError ? "  |  " + D.serverError : "");
+    $("#reload").textContent = SERVER_MODE || CLOUD_MODE ? "Taaza karein" : "Doosra folder kholein";
+    syncPill();
+    syncFyCtl();
+    if (!D.pending) {
+      D.pending = new Map();
+      for (const [code, list] of D.os) D.pending.set(code, list.reduce((s, g) => s + g.pending, 0));
+    }
+    if (!D.dayRange) D.dayRange = Core.dayRange(D);
+    if (st.dbFrom == null) {
+      const last = D.dayRange && D.dayRange.max != null ? D.dayRange.max : TODAY;
+      st.dbFrom = st.dbTo = last;
+    }
+    renderList();
+    setSection(st.sec, true);
+  }
+
+  function syncFyCtl() {
+    const ys = (D.years || []).slice().sort((a, b) => b - a);
+    $("#fySel").innerHTML = ys.map((y) => `<option value="${y}">${fyLabel(y)}</option>`).join("") +
+      `<option value="all">Sab saal</option><option value="custom">Apni tareekh</option>`;
+    $("#fySel").value = String(st.fy ?? (ys[0] || "all"));
+    $("#from").value = st.from != null ? isoOf(st.from) : "";
+    $("#to").value = st.to != null ? isoOf(st.to) : "";
+  }
+
+  function isActive(code) {
+    if (D.active) return D.active.has(code);
+    return D.ledger.has(code) || D.bills.has(code) || D.os.has(code);
+  }
+
+  function renderList() {
+    const q = st.q.toLowerCase().trim();
+    const all = [...D.accounts.values()];
+    let list = all.filter((a) => !st.onlyActive || isActive(a.code));
+    if (q)
+      list = list.filter((a) =>
+        (a.name + " " + a.code + " " + a.station + " " + a.mobile + " " + a.gst).toLowerCase().includes(q)
+      );
+    list.sort((a, b) => a.name.localeCompare(b.name));
+    const shown = list.slice(0, 300);
+    $("#count").textContent =
+      list.length + " parties" + (list.length > shown.length ? " (pehli 300 dikh rahi hain, naam se khojein)" : "");
+    $("#plist").innerHTML = shown
+      .map((a) => {
+        const p = D.pending.get(a.code) || 0;
+        return `<li><button type="button" data-c="${esc(a.code)}" ${a.code === st.party ? 'aria-current="true"' : ""}>
+          <span class="pn">${esc(a.name)}</span>
+          <span class="ps">${esc(a.station || a.group)}</span>
+          <span class="pb ${p < 0 ? "dr" : "cr"}">${Math.abs(p) >= 0.5 ? esc(bal(p)) : ""}</span>
+        </button></li>`;
+      })
+      .join("");
+  }
+
+  function selectParty(code) {
+    st.party = code;
+    $("#secLedger").classList.add("picked");
+    st.open.clear();
+    renderList();
+    if (SERVER) fetchParty(code);
+    else renderParty();
+    if (window.matchMedia("(max-width: 900px)").matches) window.scrollTo({ top: 0 });
+  }
+
+  function inRange(t) {
+    return t != null && (st.from == null || t >= st.from) && (st.to == null || t <= st.to);
+  }
+
+  // ---------------- Party view ----------------
+  function ledgerData(code) {
+    const rows = D.ledger.get(code) || [];
+    const op = D.opening.get(code);
+    let opening = 0;
+    if (op && D.years.length) opening = op.get(Math.min(...[...op.keys()])) || 0;
+    for (const r of rows) if (st.from != null && r.date < st.from) opening += r.amt;
+    let run = opening,
+      dr = 0,
+      cr = 0;
+    const out = [];
+    for (const r of rows) {
+      if (!inRange(r.date)) continue;
+      run += r.amt;
+      if (r.amt < 0) dr += -r.amt;
+      else cr += r.amt;
+      const against = r.against || Core.counterparts(D, r);
+      out.push({
+        date: r.date,
+        vt: D.vt.get(r.series) || "Voucher",
+        no: r.ref || String(r.vhno),
+        part: against.slice(0, 3).join(", ") + (against.length > 3 ? " +" + (against.length - 3) : ""),
+        narr: r.part,
+        dr: r.amt < 0 ? -r.amt : 0,
+        cr: r.amt > 0 ? r.amt : 0,
+        bal: run,
+      });
+    }
+    return { opening, rows: out, dr, cr, closing: run };
+  }
+
+  function osData(code) {
+    const all = D.os.get(code) || [];
+    return all.filter((g) => !st.onlyPending || Math.abs(g.pending) >= 0.5);
+  }
+
+  function renderParty() {
+    const a = D && D.accounts.get(st.party);
+    const box = $("#party");
+    if (!a) {
+      box.innerHTML = `<div class="empty"><p class="big">Party chunein</p><p>Bayein taraf list se party par click karein, ya naam, station, mobile ya GST number se khojein.</p></div>`;
+      return;
+    }
+    if (SERVER && !D.got.has(a.code)) {
+      box.innerHTML = `<div class="empty"><p class="big">${esc(a.name)}</p><p>${st.loading ? "Hisab aa raha hai…" : "Hisab nahi aa paya. Party par dobara tap karein."}</p></div>`;
+      return;
+    }
+    const L = ledgerData(a.code);
+    const pend = D.pending.get(a.code) || 0;
+    const meta = [a.group, a.station, a.mobile && "Mob. " + a.mobile, a.gst && "GSTIN " + a.gst].filter(Boolean);
+    box.innerHTML = `
+      <header class="ph">
+        <h2>${esc(a.name)}</h2>
+        <p class="pm">${meta.map(esc).join("  |  ")}</p>
+        ${a.address ? `<p class="pa">${esc(a.address)}</p>` : ""}
+        <dl class="facts">
+          <div><dt>Ledger balance (${esc(dt(st.to))} tak)</dt><dd class="${L.closing < 0 ? "dr" : "cr"}">${esc(bal(L.closing))}</dd></div>
+          <div><dt>Bill-wise baaki</dt><dd class="${pend < 0 ? "dr" : "cr"}">${esc(bal(pend))}</dd></div>
+          <div><dt>Is period ke bills</dt><dd>${(D.bills.get(a.code) || []).filter((b) => inRange(b.date)).length}</dd></div>
+        </dl>
+        <div class="acts pacts">
+          ${actBtn("print", "PDF / Print", 'id="pPrint"')}
+          ${actLink("wa", st.tab === "os" && pend < 0 ? "Reminder" : "WhatsApp", waLink(a.mobile, partyText(a, L)))}
+          ${actBtn("csv", "Excel (CSV)", 'id="csv" data-dsk="1"')}
+        </div>
+      </header>
+      <div class="tabs" role="tablist">
+        ${[
+          ["ledger", "Ledger"],
+          ["bills", "Bills"],
+          ["os", "Outstanding"],
+        ]
+          .map(([k, l]) => `<button type="button" role="tab" data-tab="${k}" aria-selected="${st.tab === k}">${l}</button>`)
+          .join("")}
+      </div>
+      <div class="sheet" id="sheet">${st.tab === "ledger" ? ledgerHtml(L, a) : st.tab === "bills" ? billsHtml(a) : osHtml(a)}</div>`;
+    $("#ctlPending").hidden = st.tab !== "os";
+    $("#ctlDates").hidden = st.tab === "os";
+  }
+
+  function partyText(a, L) {
+    const co = D.company || {};
+    const per = dt(st.from) + " se " + dt(st.to);
+    if (st.tab === "os") {
+      const list = (D.os.get(a.code) || []).filter((g) => Math.abs(g.pending) >= 0.5);
+      const tot = list.reduce((s, g) => s + g.pending, 0);
+      const T = [`*${co.name || ""}*`, `${a.name} ji, ${tot < 0 ? "aapke baaki bills" : "aapka bill-wise hisab"}:`, ""];
+      list.slice(0, 25).forEach((g) => T.push(`${g.label}${g.date != null ? " (" + dt(g.date) + ")" : ""}: ${bal(g.pending)}`));
+      if (list.length > 25) T.push(`...aur ${list.length - 25} bill`);
+      T.push("", `*Kul baaki: Rs. ${bal(tot)}*`, tot < 0 ? "Kripya bhugtan karein. Dhanyavaad." : "Dhanyavaad.");
+      return T.join("\n");
+    }
+    if (st.tab === "bills") {
+      const bills = (D.bills.get(a.code) || []).filter((b) => inRange(b.date));
+      const T = [`*${co.name || ""}*`, `${a.name}: bills (${per})`, ""];
+      bills.slice(0, 30).forEach((b) => T.push(`${b.no} | ${dt(b.date)} | Rs. ${nf.format(b.net)}`));
+      T.push("", `*Kul: Rs. ${nf.format(bills.reduce((s, b) => s + b.net, 0))}*`);
+      return T.join("\n");
+    }
+    const T = [`*${co.name || ""}*`, `Ledger: ${a.name}`, `Avadhi: ${per}`, "", `Opening: ${bal(L.opening)}`];
+    L.rows.slice(-15).forEach((r) => T.push(`${dt(r.date)} ${r.vt} ${r.no}: ${r.dr ? nf.format(r.dr) + " Dr" : nf.format(r.cr) + " Cr"}`));
+    if (L.rows.length > 15) T.splice(5, 0, `(aakhri 15 entry, kul ${L.rows.length})`);
+    T.push("", `Kul Debit: ${nf.format(L.dr)}`, `Kul Credit: ${nf.format(L.cr)}`, `*Closing balance: ${bal(L.closing)}*`);
+    return T.join("\n");
+  }
+
+  function statementHtml(a) {
+    const L = ledgerData(a.code);
+    const info = `<div class="sp2"><div><b>${esc(a.name)}</b><br>${esc([a.address || a.station, a.gst && "GSTIN " + a.gst, a.mobile && "Mob. " + a.mobile].filter(Boolean).join(" | "))}</div>
+      <div class="r">${st.tab === "os" ? "Aaj tak" : "Avadhi: " + dt(st.from) + " se " + dt(st.to)}<br>Chhapa: ${dt(TODAY)}</div></div>`;
+    if (st.tab === "os") {
+      const list = (D.os.get(a.code) || []).filter((g) => !st.onlyPending || Math.abs(g.pending) >= 0.5);
+      const tot = list.reduce((s, g) => s + g.pending, 0);
+      return `<div class="stmt">${coHead()}<h4>Outstanding Statement</h4>${info}
+        <table><thead><tr><th>Bill date</th><th>Bill / voucher</th><th class="r">Bill amount</th><th class="r">Mila / adjust</th><th class="r">Baaki</th><th>Due date</th><th class="r">Din</th></tr></thead><tbody>
+        ${list.map((g) => { const ref = g.due != null ? g.due : g.fy ? Date.UTC(g.fy, 3, 1) : null; const d = ref != null && Math.abs(g.pending) >= 0.5 ? Math.round((TODAY - ref) / DAY) : ""; return `<tr><td>${dt(g.date)}</td><td>${esc(g.label)}</td><td class="r">${esc(bal(g.billAmt))}</td><td class="r">${amt(g.adj)}</td><td class="r"><b>${Math.abs(g.pending) >= 0.5 ? esc(bal(g.pending)) : "Clear"}</b></td><td>${dt(g.due)}</td><td class="r">${d}</td></tr>`; }).join("")}
+        </tbody><tfoot><tr><td colspan="4">Kul baaki</td><td class="r">${esc(bal(tot))}</td><td colspan="2"></td></tr></tfoot></table></div>`;
+    }
+    if (st.tab === "bills") {
+      const bills = (D.bills.get(a.code) || []).filter((b) => inRange(b.date));
+      return `<div class="stmt">${coHead()}<h4>Bill Statement</h4>${info}
+        <table><thead><tr><th>Date</th><th>Bill no.</th><th>Items</th><th class="r">Taxable</th><th class="r">GST</th><th class="r">Bill amount</th></tr></thead><tbody>
+        ${bills.map((b) => `<tr><td>${dt(b.date)}</td><td>${esc(b.no)}</td><td>${esc(b.items.map((x) => x.item + " " + qf.format(x.qty) + " @ " + amt(x.rate)).join(", "))}</td><td class="r">${amt(b.taxable)}</td><td class="r">${amt(b.gst)}</td><td class="r">${nf.format(b.net)}</td></tr>`).join("")}
+        </tbody><tfoot><tr><td colspan="3">Kul (${bills.length})</td><td class="r">${nf.format(bills.reduce((s, b) => s + b.taxable, 0))}</td><td class="r">${nf.format(bills.reduce((s, b) => s + b.gst, 0))}</td><td class="r">${nf.format(bills.reduce((s, b) => s + b.net, 0))}</td></tr></tfoot></table></div>`;
+    }
+    return `<div class="stmt">${coHead()}<h4>Ledger Statement</h4>${info}
+      <table><thead><tr><th>Date</th><th>Voucher</th><th>Particulars</th><th class="r">Debit</th><th class="r">Credit</th><th class="r">Balance</th></tr></thead><tbody>
+      <tr><td>${dt(st.from)}</td><td></td><td><i>Opening balance</i></td><td class="r">${L.opening < 0 ? amt(L.opening) : ""}</td><td class="r">${L.opening > 0 ? amt(L.opening) : ""}</td><td class="r">${bal(L.opening)}</td></tr>
+      ${L.rows.map((r) => `<tr><td>${dt(r.date)}</td><td>${esc(r.vt)} ${esc(r.no)}</td><td>${esc(r.part)}${r.narr ? `<br><small>${esc(r.narr)}</small>` : ""}</td><td class="r">${amt(r.dr)}</td><td class="r">${amt(r.cr)}</td><td class="r">${bal(r.bal)}</td></tr>`).join("")}
+      </tbody><tfoot><tr><td colspan="3">Kul</td><td class="r">${nf.format(L.dr)}</td><td class="r">${nf.format(L.cr)}</td><td></td></tr>
+      <tr><td colspan="5">Closing balance</td><td class="r">${bal(L.closing)}</td></tr></tfoot></table></div>`;
+  }
+
+  function ledgerHtml(L, a) {
+    let note = "";
+    if (!D.years.length) note = `<p class="note">Ledger ke liye AcTranYY.mdb file bhi chunein.</p>`;
+    else if (Math.abs(L.opening) < 0.005 && (D.os.get(a.code) || []).some((g) => Math.abs(g.pending) >= 0.5 && (g.date == null || g.date < Date.UTC(D.years[0], 3, 1))))
+      note = `<p class="note">Is saal ki file me opening balance 0 hai, isliye purana baaki yahan nahi juda. Purane bills ka hisab Outstanding tab me dekhein.</p>`;
+    const body = L.rows
+      .map(
+        (r) => `<tr>
+        <td class="d">${dt(r.date)}</td>
+        <td class="hm">${esc(r.vt)}<span class="sub">${esc(r.no)}</span></td>
+        <td>${esc(r.part)}<span class="sub mo">${esc(r.vt + " " + r.no)}</span>${r.narr ? `<span class="sub hm">${esc(r.narr)}</span>` : ""}</td>
+        <td class="n om ${r.dr ? "dr" : "cr"}">${r.dr ? amt(r.dr) + " Dr" : amt(r.cr) + " Cr"}</td>
+        <td class="n dr hm">${amt(r.dr)}</td><td class="n cr hm">${amt(r.cr)}</td><td class="n b">${bal(r.bal)}</td></tr>`
+      )
+      .join("");
+    return `${note}<div class="scroll"><table class="bahi rep">
+      <thead><tr><th>Date</th><th class="hm">Voucher</th><th>Particulars</th><th class="n om">Raqam</th><th class="n hm">Debit</th><th class="n hm">Credit</th><th class="n">Balance</th></tr></thead>
+      <tbody>
+        <tr class="op"><td class="d">${dt(st.from)}</td><td class="hm"></td><td>Opening balance</td><td class="n om"></td><td class="n dr hm">${L.opening < 0 ? amt(L.opening) : ""}</td><td class="n cr hm">${L.opening > 0 ? amt(L.opening) : ""}</td><td class="n b">${bal(L.opening)}</td></tr>
+        ${body || `<tr><td colspan="7" class="none">Is period me koi entry nahi hai.</td></tr>`}
+      </tbody>
+      <tfoot><tr class="hm"><td colspan="3">Total</td><td class="n om"></td><td class="n dr">${amt(L.dr)}</td><td class="n cr">${amt(L.cr)}</td><td class="n"></td></tr>
+      <tr class="cl"><td colspan="3" class="hm">Closing balance</td><td class="mo-cell" colspan="2">Closing balance</td><td class="n om"></td><td class="n hm"></td><td class="n hm"></td><td class="n b">${bal(L.closing)}</td></tr></tfoot>
+    </table></div>`;
+  }
+
+  function billsHtml(a) {
+    const bills = (D.bills.get(a.code) || []).filter((b) => inRange(b.date));
+    if (!D.bills.size && !bills.length) return `<p class="note">Bills ke liye STTranYY.mdb aur STMast.mdb files bhi chunein.</p>`;
+    let tNet = 0,
+      tTax = 0,
+      tGst = 0;
+    const body = bills
+      .map((b, i) => {
+        tNet += b.net;
+        tTax += b.taxable;
+        tGst += b.gst;
+        const k = b.year + "|" + b.no;
+        const open = st.open.has(k);
+        return `<tr class="bill${open ? " open" : ""}">
+          <td class="d">${dt(b.date)}</td>
+          <td><button type="button" class="link" data-bill="${esc(k)}" aria-expanded="${open}">${esc(b.no)}</button><span class="sub">${esc(b.kind === "PIN" ? "Purchase" + (b.refNo ? " | " + b.refNo : "") : b.book)}</span></td>
+          <td class="hm">${b.items.length ? esc(b.items.map((x) => x.item).slice(0, 2).join(", ") + (b.items.length > 2 ? " +" + (b.items.length - 2) : "")) : ""}</td>
+          <td class="n hm">${amt(b.taxable)}</td><td class="n hm">${amt(b.gst)}</td><td class="n b">${amt(b.net)}</td><td class="n cr hm">${amt(b.recd)}</td></tr>
+          ${open ? `<tr class="items"><td colspan="7">${billBlock(b, k)}</td></tr>` : ""}`;
+      })
+      .join("");
+    return `<div class="scroll"><table class="bahi rep">
+      <thead><tr><th>Date</th><th>Bill no.</th><th class="hm">Items</th><th class="n hm">Taxable</th><th class="n hm">GST</th><th class="n">Bill amount</th><th class="n hm">Turant mila</th></tr></thead>
+      <tbody>${body || `<tr><td colspan="7" class="none">Is period me is party ka koi sales bill nahi hai.</td></tr>`}</tbody>
+      <tfoot><tr><td colspan="2">Total (${bills.length} bills)</td><td class="hm"></td><td class="n hm">${amt(tTax)}</td><td class="n hm">${amt(tGst)}</td><td class="n b">${amt(tNet)}</td><td class="n hm"></td></tr></tfoot>
+    </table></div><p class="note">Bill number par tap karke items dekhein, bill kholein ya WhatsApp par bhejein.</p>`;
+  }
+
+  function osHtml(a) {
+    const list = osData(a.code);
+    if (!D.os.has(a.code)) return `<p class="note">Is party ka bill-wise hisab nahi rakha gaya hai${a.billWise ? "" : " (account bill-wise nahi hai)"}. Ledger tab dekhein.</p>`;
+    const age = [0, 0, 0, 0];
+    let tBill = 0,
+      tAdj = 0,
+      tPen = 0;
+    const body = list
+      .map((g) => {
+        const ref = g.due != null ? g.due : g.fy ? Date.UTC(g.fy, 3, 1) : null;
+        const days = ref != null && Math.abs(g.pending) >= 0.5 ? Math.round((TODAY - ref) / DAY) : null;
+        if (Math.abs(g.pending) >= 0.5) {
+          const dd = days == null ? 0 : days;
+          age[dd <= 30 ? 0 : dd <= 90 ? 1 : dd <= 180 ? 2 : 3] += g.pending;
+        }
+        tBill += g.billAmt;
+        tAdj += g.adj;
+        tPen += g.pending;
+        const rc = g.receipts.length
+          ? `<span class="sub">${g.receipts.map((r) => esc(dt(r.date)) + ": " + esc(amt(r.amt))).slice(0, 3).join(", ")}${g.receipts.length > 3 ? " …" : ""}</span>`
+          : "";
+        return `<tr>
+          <td class="d hm">${dt(g.date)}</td>
+          <td>${esc(g.label)}<span class="sub mo">${esc(dt(g.date))}</span><span class="sub">${esc(g.kind)}${g.fy ? (g.kind ? " | " : "") + "FY " + g.fy + "-" + String((g.fy + 1) % 100).padStart(2, "0") : ""}</span></td>
+          <td class="n hm">${esc(bal(g.billAmt))}</td>
+          <td class="n hm">${amt(g.adj)}${g.rebate ? `<span class="sub">Rebate ${esc(amt(g.rebate))}</span>` : ""}${rc}</td>
+          <td class="n b ${g.pending < 0 ? "dr" : "cr"}">${Math.abs(g.pending) >= 0.5 ? esc(bal(g.pending)) : "Clear"}</td>
+          <td class="d hm">${dt(g.due)}</td>
+          <td class="n x">${days == null ? "" : days}</td></tr>`;
+      })
+      .join("");
+    const ages = ["0–30 din", "31–90 din", "91–180 din", "180+ din"];
+    return `<div class="ageing">${ages.map((l, i) => `<div><span>${l}</span><strong class="${age[i] < 0 ? "dr" : "cr"}">${esc(bal(age[i]))}</strong></div>`).join("")}</div>
+      <div class="scroll"><table class="bahi rep">
+      <thead><tr><th class="hm">Bill date</th><th>Bill / voucher</th><th class="n hm">Bill amount</th><th class="n hm">Mila / adjust</th><th class="n">Baaki</th><th class="hm">Due date</th><th class="n x">Din</th></tr></thead>
+      <tbody>${body || `<tr><td colspan="7" class="none">Koi baaki nahi. Sab bills clear hain.</td></tr>`}</tbody>
+      <tfoot><tr><td class="hm"></td><td>Total (${list.length})</td><td class="n hm">${esc(bal(tBill))}</td><td class="n hm">${amt(tAdj)}</td><td class="n b">${esc(bal(tPen))}</td><td class="hm"></td><td></td></tr></tfoot>
+    </table></div>
+    <p class="note">Dr = party se lena hai, Cr = party ko dena hai. "On account" = bina bill se jodi jama/udhar raqam. "Din" = due date se aaj tak kitne din hue.</p>`;
+  }
+
+  // ---------------- Icons & action bars ----------------
+  const svg = (d) => `<svg aria-hidden="true" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">${d}</svg>`;
+  const IC = {
+    view: svg('<path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/>'),
+    wa: svg('<path d="M3.5 20.5l1.3-4.2A8.5 8.5 0 1 1 8 19.4z"/><path d="M9 8.5c0 3.6 2.9 6.5 6.5 6.5l1-1.6-2-1-1 1a4.5 4.5 0 0 1-2.9-2.9l1-1-1-2z"/>'),
+    stmt: svg('<path d="M6 3h9l4 4v14H6z"/><path d="M15 3v4h4M9 12h7M9 16h7"/>'),
+    print: svg('<path d="M7 9V3h10v6"/><rect x="3" y="9" width="18" height="8" rx="2"/><path d="M7 14h10v7H7z"/>'),
+    csv: svg('<path d="M12 3v12m-5-5 5 5 5-5"/><path d="M4 19h16"/>'),
+    bell: svg('<path d="M6 16V11a6 6 0 0 1 12 0v5l2 2H4z"/><path d="M10 20a2 2 0 0 0 4 0"/>'),
+  };
+  const actBtn = (icon, label, attrs) => `<button type="button" class="act" ${attrs}>${IC[icon]}<span>${label}</span></button>`;
+  const actLink = (icon, label, href) => `<a class="act" href="${esc(href)}" target="_blank" rel="noopener">${IC[icon]}<span>${label}</span></a>`;
+  const waLink = (mobile, text) => {
+    const ph = waPhone(mobile);
+    return "https://wa.me/" + ph + "?text=" + encodeURIComponent(text);
+  };
+
+  // generic print of a statement-style document
+  function printDoc(html) {
+    const area = $("#printArea");
+    area.innerHTML = html;
+    document.body.classList.add("print-bill");
+    const done = () => { document.body.classList.remove("print-bill"); area.innerHTML = ""; window.removeEventListener("afterprint", done); };
+    window.addEventListener("afterprint", done);
+    window.print();
+    setTimeout(done, 1500);
+  }
+  const coHead = () => {
+    const co = D.company || {};
+    return `<header class="sh"><h3>${esc(co.name || "")}</h3><p>${esc(co.address || "")}${co.gst ? " | GSTIN " + esc(co.gst) : ""}${co.phones && co.phones.length ? " | Ph. " + co.phones.map(esc).join(", ") : ""}</p></header>`;
+  };
+
+  // ---------------- Bill view & share ----------------
+  const billCache = new Map();
+  const itemsTable = (items) =>
+    `<table class="mini"><thead><tr><th>Item</th><th class="n hmm">Bags</th><th class="n">Weight</th><th class="n">Rate</th><th class="n">Amount</th></tr></thead><tbody>
+    ${items.map((x) => `<tr><td>${esc(x.item)}${x.bags && x.qty ? `<span class="sub">${qf.format(x.bags)} x ${qf.format(x.qty / x.bags)}</span>` : ""}</td><td class="n hmm">${x.bags ? qf.format(x.bags) : ""}</td><td class="n">${qf.format(x.qty)}</td><td class="n">${amt(x.rate)}</td><td class="n">${amt(x.amount)}</td></tr>`).join("") || `<tr><td colspan="5" class="none">Item detail nahi mila.</td></tr>`}
+    </tbody></table>`;
+  const pctOf = (x) => (x.amount ? Math.round((x.gst / x.amount) * 200) / 2 : 0);
+  function breakup(b) {
+    const basic = b.items.reduce((s, x) => s + x.amount, 0);
+    const charges = b.charges || [];
+    const chg = charges.reduce((s, x) => s + x.amt, 0);
+    const taxes = [["IGST", b.igst], ["CGST", b.cgst], ["SGST", b.sgst], ["Cess", b.cess], ["TCS", b.tcs]].filter(([, v]) => Math.abs(v) >= 0.005);
+    const tax = taxes.reduce((s, [, v]) => s + v, 0);
+    let rnd = b.rndLine;
+    if (rnd == null) rnd = b.net - basic - chg - tax;
+    return { basic, charges, chg, taxes, rnd: Math.abs(rnd) >= 0.005 ? rnd : 0 };
+  }
+  const signed = (x) => (x < 0 ? "− " : "") + nf.format(Math.abs(x));
+  function billBlock(b, key) {
+    billCache.set(key, b);
+    const k = breakup(b);
+    const extra = [b.broker && "Broker: " + b.broker, b.transport && "Transport: " + b.transport, b.truck && "Gaadi: " + b.truck]
+      .filter(Boolean).join("  |  ");
+    return `${itemsTable(b.items)}
+      <dl class="bk">
+        <div><dt>Basic amount</dt><dd>${signed(k.basic)}</dd></div>
+        ${k.charges.map((x) => `<div><dt>${esc(x.name)}</dt><dd>${signed(x.amt)}</dd></div>`).join("")}
+        ${k.taxes.map(([l, v]) => `<div><dt>${l}</dt><dd>${signed(v)}</dd></div>`).join("")}
+        ${k.rnd ? `<div><dt>Round off</dt><dd>${signed(k.rnd)}</dd></div>` : ""}
+        <div class="bnet"><dt>Bill amount</dt><dd>₹ ${nf.format(b.net)}</dd></div>
+        ${b.recd ? `<div><dt>${b.kind === "PIN" ? "Turant diya" : "Turant mila"}</dt><dd>${nf.format(b.recd)}</dd></div>` : ""}
+      </dl>
+      ${extra ? `<p class="sub bx">${esc(extra)}</p>` : ""}
+      <div class="acts">
+        ${actBtn("view", "View", `data-billview="${esc(key)}"`)}
+        ${actLink("wa", "WhatsApp", waLink(b.party.mobile, billText(b)))}
+        ${actBtn("stmt", "Statement", `data-goto="${esc(b.party.code)}" data-gtab="ledger"`)}
+        ${actBtn("print", "Print", `data-billprint="${esc(key)}"`)}
+      </div>`;
+  }
+
+  function words(num) {
+    const a = ["", "One", "Two", "Three", "Four", "Five", "Six", "Seven", "Eight", "Nine", "Ten", "Eleven", "Twelve", "Thirteen", "Fourteen", "Fifteen", "Sixteen", "Seventeen", "Eighteen", "Nineteen"];
+    const t = ["", "", "Twenty", "Thirty", "Forty", "Fifty", "Sixty", "Seventy", "Eighty", "Ninety"];
+    const two = (n) => (n < 20 ? a[n] : t[Math.floor(n / 10)] + (n % 10 ? " " + a[n % 10] : ""));
+    const three = (n) => (n >= 100 ? a[Math.floor(n / 100)] + " Hundred" + (n % 100 ? " " + two(n % 100) : "") : two(n));
+    let n = Math.round(Math.abs(num));
+    if (!n) return "Zero";
+    const parts = [];
+    const cr = Math.floor(n / 1e7); n %= 1e7;
+    const lk = Math.floor(n / 1e5); n %= 1e5;
+    const th = Math.floor(n / 1e3); n %= 1e3;
+    if (cr) parts.push((cr >= 100 ? three(cr) : two(cr)) + " Crore");
+    if (lk) parts.push(two(lk) + " Lakh");
+    if (th) parts.push(two(th) + " Thousand");
+    if (n) parts.push(three(n));
+    return parts.join(" ");
+  }
+
+  function billText(b) {
+    const co = D.company || {};
+    const L = [`*${co.name || ""}*`, `${b.kind === "PIN" ? "Purchase Bill" : "Bill"} No: ${b.kind === "PIN" ? b.refNo || b.no : b.no}   Date: ${dt(b.date)}`, `${b.kind === "PIN" ? "Supplier" : "Party"}: ${b.party.name}${b.party.station ? ", " + b.party.station : ""}`, "------------------------"];
+    b.items.forEach((x, i) => L.push(`${i + 1}. ${x.item}: ${qf.format(x.qty)}${x.bags ? " (" + qf.format(x.bags) + " bag)" : ""} x ${amt(x.rate)} = ${amt(x.amount)}`));
+    L.push("------------------------");
+    L.push(`Taxable: ${amt(b.taxable) || "0.00"}`);
+    if (b.igst) L.push(`IGST: ${amt(b.igst)}`);
+    if (b.cgst) L.push(`CGST: ${amt(b.cgst)}`);
+    if (b.sgst) L.push(`SGST: ${amt(b.sgst)}`);
+    const other = b.net - b.taxable - b.gst;
+    if (Math.abs(other) >= 0.01) L.push(`Other / Round off: ${other < 0 ? "-" : ""}${amt(other)}`);
+    L.push(`*Bill amount: Rs. ${amt(b.net)}*`);
+    if (b.transport) L.push(`Transport: ${b.transport}${b.truck ? ", Gaadi " + b.truck : ""}`);
+    return L.join("\n");
+  }
+  const waPhone = (m) => {
+    const d = String(m || "").replace(/\D/g, "");
+    const ten = d.length >= 10 ? d.slice(-10) : "";
+    return /^[6-9]/.test(ten) ? "91" + ten : "";
+  };
+
+  const dmy = (t) => {
+    if (t == null) return "";
+    const d = new Date(t);
+    return String(d.getUTCDate()).padStart(2, "0") + "/" + String(d.getUTCMonth() + 1).padStart(2, "0") + "/" + d.getUTCFullYear();
+  };
+  const f2 = (x) => (Math.abs(x) < 0.005 ? "" : x.toFixed(2));
+  function billDocHtml(b) {
+    const isP = b.kind === "PIN";
+    const me = D.company || {};
+    const co = isP
+      ? { name: b.party.name, address: b.party.address || b.party.station, gst: b.party.gst, pan: b.party.pan, phones: b.party.mobile ? [b.party.mobile] : [], email: "", fssai: "", fssaiTitle: "", bankers: [], terms: [] }
+      : me;
+    const p = isP ? { name: me.name, address: me.address, gst: me.gst, pan: me.pan, station: "", mobile: (me.phones || [])[0] || "" } : b.party;
+    const k = breakup(b);
+    const inter = b.igst > 0;
+    const tq = b.items.reduce((s, x) => s + x.bags, 0), tw = b.items.reduce((s, x) => s + x.qty, 0);
+    // HSN summary
+    const groups = new Map();
+    for (const x of b.items) {
+      const kk = (x.hsn || "-") + "|" + pctOf(x);
+      const g = groups.get(kk) || { hsn: x.hsn || "-", pct: pctOf(x), base: 0, tax: 0 };
+      g.base += x.amount; g.tax += x.gst; groups.set(kk, g);
+    }
+    if (groups.size === 1) { const g = [...groups.values()][0]; g.base = b.taxable || g.base; g.tax = b.gst || g.tax; }
+    const hsnLines = [...groups.values()].filter((g) => g.pct).map((g) =>
+      inter ? `HSN:${g.hsn}=IGST${g.pct}% On Rs.${g.base.toFixed(2)}=Tax:${g.tax.toFixed(2)}`
+            : `HSN:${g.hsn}=CGST${g.pct / 2}%+SGST${g.pct / 2}% On Rs.${g.base.toFixed(2)}=Tax:${g.tax.toFixed(2)}`);
+    const rowsH = b.items.map((x, i) => {
+      const pct = pctOf(x);
+      const paid = x.rate * (1 + pct / 100);
+      return `<tr><td class="c">${i + 1}</td><td><b>${esc(x.item)}</b>${x.bags && x.qty ? `<div class="bd">${qf.format(x.bags)}x${(x.qty / x.bags).toFixed(1)}=${x.qty.toFixed(1)}</div>` : ""}</td>
+        <td>${esc(x.hsn)}</td><td class="c">${x.bags ? qf.format(x.bags) : ""}</td><td class="r">${x.qty.toFixed(2)}</td><td class="r">${x.rate.toFixed(2)}</td>
+        <td class="r">${pct ? paid.toFixed(2) : ""}</td><td class="r">${pct ? pct.toFixed(2) : ""}</td><td class="r">${x.amount.toFixed(2)}</td></tr>`;
+    }).join("");
+    const filler = Math.max(0, 5 - b.items.length);
+    const leftOther = [...k.charges.map((x) => [x.name, x.amt]), ...k.taxes.map(([l, v]) => [l + " TAX", v])];
+    return `<div class="inv">
+      <div class="i-top">
+        <div class="i-l">${co.gst ? `GSTIN No. ${esc(co.gst)}` : ""}<br>${co.pan ? `Pan No: ${esc(co.pan)}` : ""}</div>
+        <div class="i-c"><div class="i-tt">${isP ? "PURCHASE BILL" : "TAX-INVOICE"}</div><div class="i-name">${esc(co.name)}</div></div>
+        <div class="i-r">${isP ? "Record copy" : "Original"}<br>${co.phones && co.phones.length ? "Phone: " + co.phones.map(esc).join("<br>") : ""}</div>
+      </div>
+      <div class="i-addr">${esc(co.address)}${co.email ? `<br>${esc(co.email)}` : ""}</div>
+      <div class="i-fs"><span>${isP ? "" : esc(co.fssaiTitle || "FSSAI No.") + " " + esc(co.fssai || "")}</span><b>${esc(b.pay)}</b></div>
+      <div class="i-two">
+        <div class="i-buyer">
+          <div><b>Buyer&nbsp; ${esc(p.name)}</b></div>
+          <div class="i-small">${esc(p.address)}</div>
+          <div class="i-kv"><span>GSTIN No ${esc(p.gst)}</span><span>State Code. ${esc((p.gst || "").slice(0, 2))}</span></div>
+          <div class="i-kv"><span>PAN NO. ${esc(p.pan)}</span><span>Station : ${esc(p.station)}</span></div>
+          <div class="i-kv"><span>Broker : ${esc(b.broker)}</span><span>Mob.No. ${esc(p.mobile)}</span></div>
+        </div>
+        <div class="i-inv">
+          <div class="i-kv"><b class="i-big">${isP ? "Bill No : " + esc(b.refNo || b.no) : "Inv. No : " + esc(b.no)}</b><b class="i-big">Dated&nbsp; ${dmy(b.date)}</b></div>
+          <div class="i-kv"><span>${isP ? "Hamara Vch: " + esc(b.no) : "Challan :"}</span><span>Deliver At: ${esc(b.deliverAt)}</span></div>
+          <div class="i-kv"><span>Lorray No.${esc(b.truck)}</span><span>${b.ewb ? "E Way B.No. " + esc(b.ewb) : ""}</span></div>
+          <div>Transport&nbsp; ${esc(b.transportName || "")}</div>
+        </div>
+      </div>
+      <table class="i-items"><thead><tr><th class="c">SNo</th><th>Description Of Goods</th><th>HSN CODE</th><th class="c">Qty</th><th class="r">Weight</th><th class="r">Rate</th><th class="r">Paid Rate</th><th class="r">GST<br>TAX%</th><th class="r">Amount</th></tr></thead>
+        <tbody>${rowsH}${filler ? `<tr class="fill"><td style="height:${filler * 26}px"></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>` : ""}</tbody></table>
+      <div class="i-tot">
+        <div class="i-oc"><b>Other Charges</b>${leftOther.map(([l, v]) => `<div>${esc(l)}</div><div>${f2(v)}</div>`).join("")}
+          ${hsnLines.map((h) => `<div class="i-hsn">${esc(h)}</div>`).join("")}</div>
+        <div class="i-tq"><b>Total:</b><b>${qf.format(tq)}</b><b>${tw.toFixed(2)}</b></div>
+        <div class="i-sum">
+          <div><span>Basic Amount</span><span>${nf.format(k.basic)}</span></div>
+          <div><span>Other Charges</span><span>${nf.format(k.chg)}</span></div>
+          ${k.taxes.map(([l, v]) => `<div><span>${l} TAX</span><span>${nf.format(v)}</span></div>`).join("")}
+          ${k.rnd ? `<div><span>Round Off</span><span>${k.rnd < 0 ? "-" : ""}${nf.format(Math.abs(k.rnd))}</span></div>` : ""}
+          <div class="i-net"><b>Net Amount</b><b>${nf.format(b.net)}</b></div>
+        </div>
+      </div>
+      <div class="i-rem">Remark</div>
+      <div class="i-words">Net Amount (In Words ): Rupees ${esc(words(b.net))} Only.</div>
+      <div class="i-foot">
+        <div>${co.bankers && co.bankers.length ? `<div>Ours Bankers&nbsp; <b>${co.bankers.map(esc).join("<br>")}</b></div>` : ""}
+          ${co.terms && co.terms.length ? `<div class="i-terms">TERMS<br>${co.terms.map(esc).join("<br>")}</div>` : ""}</div>
+        <div class="i-sign">${isP ? `<b>Software data se banaya gaya record</b>` : `<b>For ${esc(co.name)}</b><b>Authorised Signatory</b><i><b>E. &amp; O.E.</b></i>`}</div>
+      </div>
+    </div>`;
+  }
+  function fitInvoice() {
+    const w = $("#billDoc"), inv = w && w.querySelector(".inv");
+    if (!inv) return;
+    inv.style.zoom = "";
+    const cs = getComputedStyle(w);
+    const avail = w.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight) - 2;
+    const z = Math.min(1, avail / inv.offsetWidth);
+    inv.style.zoom = z < 1 ? String(z) : "";
+  }
+
+  function printBill(key) {
+    const b = billCache.get(key);
+    if (b) printDoc(billDocHtml(b));
+  }
+  function openBill(key) {
+    const b = billCache.get(key);
+    if (!b) return;
+    const dlg = $("#billDlg");
+    $("#billDoc").innerHTML = billDocHtml(b);
+    const text = billText(b);
+    const ph = waPhone(b.party.mobile);
+    $("#waParty").hidden = !ph;
+    $("#waParty").href = "https://wa.me/" + ph + "?text=" + encodeURIComponent(text);
+    $("#waAny").href = "https://wa.me/?text=" + encodeURIComponent(text);
+    $("#shareBill").hidden = !navigator.share;
+    $("#shareBill").onclick = () => navigator.share({ title: "Bill " + b.no, text }).catch(() => {});
+    $("#printBill").onclick = () => printDoc(billDocHtml(b));
+    if (dlg.showModal) dlg.showModal(); else dlg.setAttribute("open", "");
+    requestAnimationFrame(fitInvoice);
+  }
+
+  // ---------------- Sections & reports ----------------
+  const SEC_TITLES = { pur: "Purchase", day: "Day Book", party: "Party-wise baaki", broker: "Broker-wise baaki", bills: "Sab baaki bills" };
+  const BUCKETS = ["0–30 din", "31–90 din", "91–180 din", "180+ din"];
+  const nameOf = (code) => ((D.accounts.get(code) || {}).name || (code ? code : ""));
+  const stationOf = (code) => (D.accounts.get(code) || {}).station || "";
+  const daysOf = (g) => {
+    const ref = g.due != null ? g.due : g.fy ? Date.UTC(g.fy, 3, 1) : null;
+    return ref == null ? null : Math.round((TODAY - ref) / DAY);
+  };
+  const bucketOf = (d) => (d == null || d <= 30 ? 0 : d <= 90 ? 1 : d <= 180 ? 2 : 3);
+  const sideOk = (x) => Math.abs(x) >= 0.5 && (st.side === "all" || (st.side === "dr" ? x < 0 : x > 0));
+  const daysOk = (g) =>
+    (!st.minDays || (daysOf(g) ?? -1) >= st.minDays) &&
+    (st.fFrom == null || (g.date != null && g.date >= st.fFrom)) &&
+    (st.fTo == null || (g.date != null && g.date <= st.fTo));
+  const amtOk = (x) => (st.aMin == null || Math.abs(x) >= st.aMin) && (st.aMax == null || Math.abs(x) <= st.aMax);
+  const nFilters = () => [st.minDays, st.fFrom, st.fTo, st.aMin, st.aMax].filter((v) => v != null && v !== 0).length;
+  const LIMIT = 500;
+
+  function setSection(sec, keep) {
+    st.sec = sec;
+    document.querySelectorAll(".secs button").forEach((b) => (b.dataset.sec === sec ? b.setAttribute("aria-current", "page") : b.removeAttribute("aria-current")));
+    $("#secLedger").hidden = sec !== "ledger";
+    $("#secReport").hidden = sec === "ledger";
+    if (sec === "ledger") {
+      if (SERVER && st.party && !D.got.has(st.party)) fetchParty(st.party);
+      else renderParty();
+    } else renderReport(keep);
+  }
+
+  async function getPendingBills() {
+    if (!SERVER) return (D.osAll ||= Core.pendingBills(D));
+    if (D.osAll) return D.osAll;
+    const j = await api("/api/osall");
+    D.osAll = j.bills;
+    return D.osAll;
+  }
+  async function getPurchases(from, to) {
+    if (!SERVER) return Core.purchases(D, from, to);
+    const j = await api("/api/purchases?from=" + from + "&to=" + to);
+    return j.bills;
+  }
+  function setPFy(v) {
+    st.pFy = v;
+    const ys = D.years && D.years.length ? D.years : [new Date().getFullYear()];
+    if (v === "all") { st.pFrom = Date.UTC(ys[0], 3, 1); st.pTo = Date.UTC(ys[ys.length - 1] + 1, 2, 31); }
+    else if (v !== "custom") { st.pFrom = Date.UTC(+v, 3, 1); st.pTo = Date.UTC(+v + 1, 2, 31); }
+  }
+  async function getDaybook(from, to) {
+    if (!SERVER) return Core.daybook(D, from, to);
+    const j = await api("/api/daybook?from=" + from + "&to=" + to);
+    return j.vouchers;
+  }
+
+  const segHtml = () =>
+    `<span class="seg" role="group" aria-label="Lena ya dena">${[["dr", "Lena (Dr)"], ["cr", "Dena (Cr)"], ["all", "Dono"]]
+      .map(([k, l]) => `<button type="button" data-side="${k}" aria-pressed="${st.side === k}">${l}</button>`).join("")}</span>`;
+  const filterBtn = () => `<button type="button" class="btn ghost fbtn" id="fToggle" aria-expanded="${st.showFilter}">Filter${nFilters() ? ` (${nFilters()})` : ""}</button>`;
+  const filterPanel = () => `<div class="fpanel" id="fPanel" ${st.showFilter ? "" : "hidden"}>
+      ${daysHtml()}
+      <label>Bill date se<input type="date" id="fFrom" value="${st.fFrom != null ? isoOf(st.fFrom) : ""}"></label>
+      <label>Bill date tak<input type="date" id="fTo" value="${st.fTo != null ? isoOf(st.fTo) : ""}"></label>
+      <label>Raqam se (₹)<input type="number" inputmode="decimal" min="0" id="aMin" value="${st.aMin ?? ""}" placeholder="0"></label>
+      <label>Raqam tak (₹)<input type="number" inputmode="decimal" min="0" id="aMax" value="${st.aMax ?? ""}" placeholder="Koi seema nahi"></label>
+      <button type="button" class="btn ghost" id="fClear">Filter hatayein</button>
+    </div>`;
+  const daysHtml = () =>
+    `<label>Kitne din purane<select id="rDays">${[[0, "Sab"], [30, "30+ din"], [60, "60+ din"], [90, "90+ din"], [180, "180+ din"], [365, "1 saal+"]]
+      .map(([v, l]) => `<option value="${v}" ${st.minDays === v ? "selected" : ""}>${l}</option>`).join("")}</select></label>`;
+  const searchHtml = (ph) => `<label>Khojein<input type="search" id="rq" value="${esc(st.rq)}" placeholder="${esc(ph)}" autocomplete="off"></label>`;
+  const toolBtns = `<span class="sp dsk" style="flex:1"></span><button type="button" class="btn ghost dsk" id="rCsv">CSV download</button><button type="button" class="btn ghost dsk" id="rPrint">Print</button>`;
+
+  function renderReport(keep) {
+    const c = $("#repCtl");
+    if (st.sec === "day") {
+      c.innerHTML = `<label>Kab se<input type="date" id="dbFrom" value="${isoOf(st.dbFrom)}"></label>
+        <label>Kab tak<input type="date" id="dbTo" value="${isoOf(st.dbTo)}"></label>
+        <span class="row"><button type="button" class="btn ghost" id="dbPrev">Pichhla din</button><button type="button" class="btn ghost" id="dbNext">Agla din</button></span>${toolBtns}`;
+    } else if (st.sec === "pur") {
+      if (st.pFy == null) setPFy((D.years || []).slice(-1)[0] ?? "all");
+      const ys = (D.years || []).slice().sort((a, b) => b - a);
+      c.innerHTML = `<label>Saal<select id="pSaal">${ys.map((y) => `<option value="${y}" ${String(st.pFy) === String(y) ? "selected" : ""}>${fyLabel(y)}</option>`).join("")}
+          <option value="all" ${st.pFy === "all" ? "selected" : ""}>Sab saal</option><option value="custom" ${st.pFy === "custom" ? "selected" : ""}>Apni tareekh</option></select></label>
+        <label>Kab se<input type="date" id="pFrom" value="${isoOf(st.pFrom)}"></label>
+        <label>Kab tak<input type="date" id="pTo" value="${isoOf(st.pTo)}"></label>
+        <label>Khojein<input type="search" id="pq" value="${esc(st.pq)}" placeholder="Supplier, bill no., item" autocomplete="off"></label>
+        <label>Kram<select id="pSort">${[["new", "Naye pehle"], ["old", "Purane pehle"], ["big", "Badi raqam pehle"], ["small", "Chhoti raqam pehle"], ["party", "Supplier naam (A-Z)"]]
+          .map(([v, l]) => `<option value="${v}" ${st.psort === v ? "selected" : ""}>${l}</option>`).join("")}</select></label>${toolBtns}`;
+    } else if (st.sec === "party") {
+      c.innerHTML = segHtml() + searchHtml("Party ya station") +
+        `<label>Kram<select id="rSort">${[["amt", "Badi raqam pehle"], ["small", "Chhoti raqam pehle"], ["name", "Naam (A-Z)"], ["bills", "Zyada bills pehle"]].map(([v, l]) => `<option value="${v}" ${st.sort === v ? "selected" : ""}>${l}</option>`).join("")}</select></label>` + filterBtn() + toolBtns + filterPanel();
+    } else if (st.sec === "broker") {
+      c.innerHTML = segHtml() + searchHtml("Broker ya party") + `<label>Kram<select id="rSort">${[["amt", "Badi raqam pehle"], ["small", "Chhoti raqam pehle"], ["name", "Naam (A-Z)"], ["bills", "Zyada bills pehle"]].map(([v, l]) => `<option value="${v}" ${st.sort === v ? "selected" : ""}>${l}</option>`).join("")}</select></label>` + filterBtn() + toolBtns + filterPanel();
+    } else {
+      c.innerHTML = segHtml() + searchHtml("Party, broker, bill no.") +
+        `<label>Kram<select id="bSort">${[["old", "Purane pehle"], ["new", "Naye pehle"], ["big", "Badi raqam pehle"], ["small", "Chhoti raqam pehle"], ["days", "Zyada din wale pehle"], ["party", "Party naam (A-Z)"]]
+          .map(([v, l]) => `<option value="${v}" ${st.bsort === v ? "selected" : ""}>${l}</option>`).join("")}</select></label>` + filterBtn() + toolBtns + filterPanel();
+    }
+    renderRepBody();
+  }
+
+  let repSeq = 0;
+  async function renderRepBody() {
+    const seq = ++repSeq;
+    const body = $("#repBody");
+    body.innerHTML = `<p class="sumline">Hisab jod rahe hain…</p>`;
+    try {
+      let html;
+      if (st.sec === "day") html = await dayHtml();
+      else if (st.sec === "pur") html = await purHtml();
+      else if (st.sec === "party") html = partyWiseHtml(await getPendingBills());
+      else if (st.sec === "broker") html = brokerWiseHtml(await getPendingBills());
+      else html = allBillsHtml(await getPendingBills());
+      if (seq === repSeq) body.innerHTML = html;
+    } catch (e) {
+      if (e instanceof PinError) return showPin(true);
+      if (await fallbackOffline()) return;
+      if (seq === repSeq) body.innerHTML = `<p class="sumline err">${esc(e.message || e)}</p>`;
+    }
+  }
+
+  const head = (title, sub) => `<h2>${esc(title)}</h2>${sub ? `<p class="sumline">${sub}</p>` : ""}`;
+  const partyCell = (code) =>
+    `<button type="button" class="link" data-goto="${esc(code)}">${esc(nameOf(code))}</button>${stationOf(code) ? `<span class="sub">${esc(stationOf(code))}</span>` : ""}`;
+  const bucketCells = (b) => b.map((x) => `<td class="n ag ${x < 0 ? "dr" : "cr"}">${Math.abs(x) >= 0.5 ? esc(bal(x)) : ""}</td>`).join("");
+  const moreNote = (n) => (n > LIMIT ? `<p class="note">Pehli ${LIMIT} line dikh rahi hain (kul ${n}). Khoj ya filter se chhota karein. CSV me sab line aayengi.</p>` : "");
+
+  async function dayHtml() {
+    const from = Math.min(st.dbFrom, st.dbTo), to = Math.max(st.dbFrom, st.dbTo);
+    const v = await getDaybook(from, to);
+    const byType = new Map();
+    let tDr = 0, tCr = 0;
+    for (const x of v) {
+      const t = byType.get(x.vt) || { n: 0, amt: 0 };
+      t.n++; t.amt += x.total; byType.set(x.vt, t);
+      const m = x.lines[x.main];
+      if (m.amt < 0) tDr -= m.amt; else tCr += m.amt;
+    }
+    st.lastReport = {
+      name: "day-book",
+      rows: [["Date", "Voucher", "No", "Account", "Narration", "Debit", "Credit"],
+        ...v.map((x) => { const m = x.lines[x.main]; return [dt(x.date), x.vt, x.no, m.name || m.code, x.narr, m.amt < 0 ? (-m.amt).toFixed(2) : "", m.amt > 0 ? m.amt.toFixed(2) : ""]; })],
+    };
+    const range = from === to ? dt(from) : dt(from) + " se " + dt(to);
+    const avail = D.dayRange && D.dayRange.min != null ? `Data ${dt(D.dayRange.min)} se ${dt(D.dayRange.max)} tak hai.` : "Ledger file (AcTranYY.mdb) nahi mili.";
+    const cards = v.slice(0, LIMIT).map((x) => {
+      const m = x.lines[x.main];
+      const open = st.openV.has(x.key);
+      const acc = D.accounts.get(m.code);
+      const nm = m.name || m.code;
+      const stn = acc ? acc.station : "";
+      return `<article class="vcard${open ? " open" : ""}">
+        <button type="button" class="vhead" data-vch="${esc(x.key)}" aria-expanded="${open}">
+          <span class="vt">${esc(x.vt)} <span class="vno">${esc(x.no)}</span></span>
+          <span class="va ${m.amt < 0 ? "dr" : "cr"}">${nf.format(Math.abs(m.amt))} <small>${m.amt < 0 ? "Dr" : "Cr"}</small></span>
+          <span class="vp">${esc(nm)}</span>
+          <span class="vs">${esc([stn, from !== to ? dt(x.date) : ""].filter(Boolean).join(" | "))}</span>
+        </button>
+        ${open ? `<div class="vbody">${x.bill ? billBlock(x.bill, x.key) : `${x.items ? itemsTable(x.items) : ""}
+          <table class="mini"><thead><tr><th>Account</th><th class="n">Debit</th><th class="n">Credit</th></tr></thead><tbody>
+          ${x.lines.map((l) => `<tr><td>${esc(l.name || l.code)}</td><td class="n">${l.amt < 0 ? amt(l.amt) : ""}</td><td class="n">${l.amt > 0 ? amt(l.amt) : ""}</td></tr>`).join("")}
+          </tbody></table>${x.narr ? `<p class="sub">${esc(x.narr)}</p>` : ""}`}
+          ${acc && !x.bill ? `<div class="acts">${actBtn("stmt", "Statement", `data-goto="${esc(m.code)}" data-gtab="ledger"`)}</div>` : ""}</div>` : ""}
+      </article>`;
+    }).join("");
+    return head("Day Book: " + range, `${v.length} voucher | Debit <strong class="dr">${nf.format(tDr)}</strong> | Credit <strong class="cr">${nf.format(tCr)}</strong>`) +
+      `${byType.size ? `<div class="vchips">${[...byType.entries()].map(([k, t]) => `<div>${esc(k)}: <strong>${t.n}</strong> | ${esc(amt(t.amt))}</div>`).join("")}</div>` : ""}
+      ${cards ? `<div class="vcards">${cards}</div>` : `<div class="empty"><p>Is din koi voucher nahi hai. ${esc(avail)}</p></div>`}
+      ${moreNote(v.length)}<p class="note">Card par tap karke items, bill ka breakup aur bill dekhein.</p>`;
+  }
+
+  async function purHtml() {
+    const all = await getPurchases(Math.min(st.pFrom, st.pTo), Math.max(st.pFrom, st.pTo));
+    const q = st.pq.trim().toLowerCase();
+    const list = all.filter((b) => !q || [b.party.name, b.party.station, b.no, b.refNo, ...b.items.map((x) => x.item)].join(" ").toLowerCase().includes(q));
+    const so = {
+      new: (a, b) => b.date - a.date, old: (a, b) => a.date - b.date, big: (a, b) => b.net - a.net, small: (a, b) => a.net - b.net,
+      party: (a, b) => a.party.name.localeCompare(b.party.name) || a.date - b.date,
+    };
+    list.sort(so[st.psort] || so.new);
+    const sum = (f) => list.reduce((s, b) => s + f(b), 0);
+    const tNet = sum((b) => b.net), tGst = sum((b) => b.gst), tBasic = sum((b) => b.items.reduce((s, x) => s + x.amount, 0));
+    const tQty = sum((b) => b.items.reduce((s, x) => s + x.qty, 0));
+    st.lastReport = { name: "purchase-bills", rows: [["Date", "Supplier bill no", "Supplier", "Station", "GSTIN", "Item", "Bags", "Weight", "Rate", "Amount", "GST", "Bill amount"],
+      ...list.flatMap((b) => (b.items.length ? b.items : [{ item: "", bags: "", qty: "", rate: 0, amount: 0, gst: 0 }]).map((x, i) => [dt(b.date), b.refNo || b.no, b.party.name, b.party.station, b.party.gst, x.item, x.bags, x.qty, x.rate ? x.rate.toFixed(2) : "", x.amount ? x.amount.toFixed(2) : "", x.gst ? x.gst.toFixed(2) : "", i === 0 ? b.net.toFixed(2) : ""]))] };
+    // top suppliers in this period
+    const bySup = new Map();
+    for (const b of list) { const r = bySup.get(b.party.code) || { name: b.party.name, n: 0, amt: 0 }; r.n++; r.amt += b.net; bySup.set(b.party.code, r); }
+    const top = [...bySup.values()].sort((a, b) => b.amt - a.amt).slice(0, 4);
+    const range = st.pFy !== "custom" && st.pFy !== "all" ? "FY " + fyLabel(+st.pFy) : st.pFy === "all" ? "Sab saal" : dt(st.pFrom) + " se " + dt(st.pTo);
+    const cards = list.slice(0, st.pShown).map((b) => {
+      const open = st.openP.has(b.id);
+      return `<article class="vcard${open ? " open" : ""}">
+        <button type="button" class="vhead" data-pur="${esc(b.id)}" aria-expanded="${open}">
+          <span class="vt">Bill <span class="vno">${esc(b.refNo || b.no)}</span> | ${dt(b.date)}</span>
+          <span class="va cr">${nf.format(b.net)} <small>Cr</small></span>
+          <span class="vp">${esc(b.party.name)}</span>
+          <span class="vs">${esc([b.party.station, b.items.map((x) => x.item).filter((v, i, a) => a.indexOf(v) === i).slice(0, 2).join(", ")].filter(Boolean).join(" | "))}</span>
+        </button>
+        ${open ? `<div class="vbody">${billBlock(b, b.id)}</div>` : ""}
+      </article>`;
+    }).join("");
+    return head("Purchase bills: " + range, `${list.length} bills | Basic <strong>${nf.format(tBasic)}</strong> | GST <strong>${nf.format(tGst)}</strong> | Kul <strong class="cr">${nf.format(tNet)}</strong>${tQty ? ` | Weight <strong>${qf.format(tQty)}</strong>` : ""}`) +
+      (top.length > 1 ? `<div class="vchips">${top.map((r) => `<div>${esc(r.name)}: <strong>${r.n}</strong> | ${esc(nf.format(r.amt))}</div>`).join("")}</div>` : "") +
+      (cards ? `<div class="vcards">${cards}</div>` : `<div class="empty"><p>Is avadhi me koi purchase bill nahi mila. Saal ya tareekh badal kar dekhein.</p></div>`) +
+      (list.length > st.pShown ? `<p class="more"><button type="button" class="btn alt" id="morePur">Aur ${Math.min(60, list.length - st.pShown)} bill dikhayein</button> <span class="sub">${st.pShown} / ${list.length}</span></p>` : "") +
+      `<p class="note">Card par tap karke items, breakup aur bill dekhein.</p>`;
+  }
+
+  function aggregate(bills, keyFn) {
+    const m = new Map();
+    for (const g of bills) {
+      if (!daysOk(g)) continue;
+      const k = keyFn(g);
+      let r = m.get(k);
+      if (!r) m.set(k, (r = { key: k, net: 0, b: [0, 0, 0, 0], n: 0 }));
+      r.net += g.pending; r.b[bucketOf(daysOf(g))] += g.pending; r.n++;
+    }
+    return m;
+  }
+  const qMatch = (...parts) => { const q = st.rq.trim().toLowerCase(); return !q || parts.join(" ").toLowerCase().includes(q); };
+  const sideTitle = () => (st.side === "dr" ? "Lena (Dr)" : st.side === "cr" ? "Dena (Cr)" : "Lena aur dena");
+
+  function partyWiseHtml(bills) {
+    let rows = [...aggregate(bills, (g) => g.code).values()].filter((r) => sideOk(r.net) && amtOk(r.net) && qMatch(nameOf(r.key), stationOf(r.key)));
+    const ps = { amt: (a, b) => Math.abs(b.net) - Math.abs(a.net), small: (a, b) => Math.abs(a.net) - Math.abs(b.net), name: (a, b) => nameOf(a.key).localeCompare(nameOf(b.key)), bills: (a, b) => b.n - a.n };
+    rows.sort(ps[st.sort] || ps.amt);
+    const tot = rows.reduce((s, r) => s + r.net, 0), tb = [0, 1, 2, 3].map((i) => rows.reduce((s, r) => s + r.b[i], 0));
+    st.lastReport = { name: "party-wise-baaki", rows: [["Party", "Station", "Bills", ...BUCKETS, "Kul baaki", "Dr/Cr"],
+      ...rows.map((r) => [nameOf(r.key), stationOf(r.key), r.n, ...r.b.map((x) => Math.abs(x).toFixed(2)), Math.abs(r.net).toFixed(2), r.net < 0 ? "Dr" : "Cr"])] };
+    return head("Party-wise baaki: " + sideTitle(), `${rows.length} parties | Kul <strong class="${tot < 0 ? "dr" : "cr"}">${esc(bal(tot))}</strong>`) +
+      `<div class="sheet"><div class="scroll"><table class="bahi rep"><thead><tr><th>Party</th><th class="n x">Bills</th>${BUCKETS.map((b) => `<th class="n ag">${b}</th>`).join("")}<th class="n">Kul baaki</th></tr></thead>
+      <tbody>${rows.slice(0, LIMIT).map((r) => `<tr><td>${partyCell(r.key)}</td><td class="n x">${r.n}</td>${bucketCells(r.b)}<td class="n b ${r.net < 0 ? "dr" : "cr"}">${esc(bal(r.net))}</td></tr>`).join("") || `<tr><td colspan="7" class="none">Is filter me koi party nahi.</td></tr>`}</tbody>
+      <tfoot><tr><td>Total</td><td class="n x">${rows.reduce((s, r) => s + r.n, 0)}</td>${bucketCells(tb)}<td class="n b">${esc(bal(tot))}</td></tr></tfoot></table></div>
+      ${moreNote(rows.length)}<p class="note">Party ke naam par click karke uske bill dekhein. Kul baaki me "on account" raqam bhi judi hai.</p></div>`;
+  }
+
+  function brokerWiseHtml(bills) {
+    const pairs = aggregate(bills, (g) => (g.broker || "") + "\u0000" + g.code);
+    const brokers = new Map();
+    for (const r of pairs.values()) {
+      if (!sideOk(r.net)) continue;
+      const [bk, code] = r.key.split("\u0000");
+      if (!qMatch(nameOf(bk) || "Bina broker", nameOf(code))) continue;
+      let b = brokers.get(bk);
+      if (!b) brokers.set(bk, (b = { bk, net: 0, b: [0, 0, 0, 0], n: 0, parties: [] }));
+      b.net += r.net; r.b.forEach((x, i) => (b.b[i] += x)); b.n += r.n; b.parties.push({ code, net: r.net, n: r.n });
+    }
+    const bName0 = (bk) => (bk ? nameOf(bk) : "Bina broker");
+    const bs = { amt: (a, b) => Math.abs(b.net) - Math.abs(a.net), small: (a, b) => Math.abs(a.net) - Math.abs(b.net), name: (a, b) => bName0(a.bk).localeCompare(bName0(b.bk)), bills: (a, b) => b.n - a.n };
+    const rows = [...brokers.values()].filter((b) => amtOk(b.net)).sort(bs[st.sort] || bs.amt);
+    rows.forEach((b) => b.parties.sort((p, q) => Math.abs(q.net) - Math.abs(p.net)));
+    const tot = rows.reduce((s, r) => s + r.net, 0);
+    const bName = (bk) => (bk ? nameOf(bk) : "Bina broker");
+    st.lastReport = { name: "broker-wise-baaki", rows: [["Broker", "Party", "Bills", "Baaki", "Dr/Cr"],
+      ...rows.flatMap((b) => b.parties.map((p) => [bName(b.bk), nameOf(p.code), p.n, Math.abs(p.net).toFixed(2), p.net < 0 ? "Dr" : "Cr"]))] };
+    const body = rows.map((b) => {
+      const open = st.openB.has(b.bk);
+      return `<tr><td><button type="button" class="link" data-broker="${esc(b.bk)}" aria-expanded="${open}">${esc(bName(b.bk))}</button><span class="sub">${b.parties.length} parties</span></td>
+        <td class="n x">${b.n}</td>${bucketCells(b.b)}<td class="n b ${b.net < 0 ? "dr" : "cr"}">${esc(bal(b.net))}</td></tr>
+        ${open ? `<tr class="items"><td colspan="7"><table class="mini"><thead><tr><th>Party</th><th class="n">Bills</th><th class="n">Baaki</th></tr></thead><tbody>
+          ${b.parties.map((p) => `<tr><td>${partyCell(p.code)}</td><td class="n">${p.n}</td><td class="n ${p.net < 0 ? "dr" : "cr"}">${esc(bal(p.net))}</td></tr>`).join("")}</tbody></table></td></tr>` : ""}`;
+    }).join("");
+    return head("Broker-wise baaki: " + sideTitle(), `${rows.length} brokers | Kul <strong class="${tot < 0 ? "dr" : "cr"}">${esc(bal(tot))}</strong>`) +
+      `<div class="sheet"><div class="scroll"><table class="bahi rep"><thead><tr><th>Broker</th><th class="n x">Bills</th>${BUCKETS.map((b) => `<th class="n ag">${b}</th>`).join("")}<th class="n">Kul baaki</th></tr></thead>
+      <tbody>${body || `<tr><td colspan="7" class="none">Is filter me kuch nahi mila.</td></tr>`}</tbody>
+      <tfoot><tr><td>Total</td><td class="n x">${rows.reduce((s, r) => s + r.n, 0)}</td>${bucketCells([0, 1, 2, 3].map((i) => rows.reduce((s, r) => s + r.b[i], 0)))}<td class="n b">${esc(bal(tot))}</td></tr></tfoot></table></div>
+      <p class="note">Broker ke naam par click karke uski parties dekhein. Broker wahi hai jo bill banate waqt chuna gaya tha. Bina bill ki "on account" raqam "Bina broker" me aati hai, isliye yahan ka kul Party-wise baaki se alag ho sakta hai.</p></div>`;
+  }
+
+  function allBillsHtml(bills) {
+    const list = bills
+      .filter((g) => sideOk(g.pending) && amtOk(g.pending) && daysOk(g) && qMatch(nameOf(g.code), stationOf(g.code), g.label, g.broker ? nameOf(g.broker) : ""))
+      .map((g) => ({ g, d: daysOf(g) }));
+    const byDate = (x) => (x.g.date ?? (x.g.fy ? Date.UTC(x.g.fy, 3, 1) : 0));
+    const sorters = {
+      old: (a, b) => byDate(a) - byDate(b),
+      new: (a, b) => byDate(b) - byDate(a),
+      big: (a, b) => Math.abs(b.g.pending) - Math.abs(a.g.pending),
+      small: (a, b) => Math.abs(a.g.pending) - Math.abs(b.g.pending),
+      days: (a, b) => (b.d ?? -1e9) - (a.d ?? -1e9),
+      party: (a, b) => nameOf(a.g.code).localeCompare(nameOf(b.g.code)) || byDate(a) - byDate(b),
+    };
+    list.sort(sorters[st.bsort] || sorters.old);
+    const tot = list.reduce((s, x) => s + x.g.pending, 0);
+    const tBill = list.reduce((s, x) => s + x.g.billAmt, 0), tAdj = list.reduce((s, x) => s + x.g.adj, 0);
+    st.lastReport = { name: "sab-baaki-bills", rows: [["Bill date", "Bill no", "Party", "Station", "Broker", "Bill amount", "Mila / adjust", "Baaki", "Dr/Cr", "Due date", "Din"],
+      ...list.map(({ g, d }) => [dt(g.date), g.label, nameOf(g.code), stationOf(g.code), g.broker ? nameOf(g.broker) : "", Math.abs(g.billAmt).toFixed(2), Math.abs(g.adj).toFixed(2), Math.abs(g.pending).toFixed(2), g.pending < 0 ? "Dr" : "Cr", dt(g.due), d ?? ""])] };
+    const shown = list.slice(0, st.billsShown);
+    const okey = (g) => g.code + "|" + g.fy + "|" + g.label + "|" + (g.date ?? "");
+    const body = shown.map(({ g, d }) => {
+      const k = okey(g), open = st.openOs.has(k);
+      return `<tr class="${open ? "open" : ""}"><td class="d hm">${dt(g.date)}</td>
+        <td><button type="button" class="link" data-os="${esc(k)}" aria-expanded="${open}">${esc(g.label)}</button><span class="sub hm">${esc(g.kind)}</span><span class="sub mo">${esc([dt(g.date), d != null ? d + " din" : ""].filter(Boolean).join(" | "))}</span></td>
+        <td>${partyCell(g.code)}</td><td class="hm">${esc(g.broker ? nameOf(g.broker) : "")}</td>
+        <td class="n hm">${esc(bal(g.billAmt))}</td><td class="n hm">${amt(g.adj)}</td><td class="n b ${g.pending < 0 ? "dr" : "cr"}">${esc(bal(g.pending))}</td><td class="d hm">${dt(g.due)}</td><td class="n x hm">${d ?? ""}</td></tr>
+        ${open ? `<tr class="items"><td colspan="9"><dl class="osd">
+          <div><dt>Bill date</dt><dd>${dt(g.date) || "-"}</dd></div>
+          <div><dt>Bill amount</dt><dd>${esc(bal(g.billAmt))}</dd></div>
+          <div><dt>Mila / adjust</dt><dd>${amt(g.adj) || "0.00"}</dd></div>
+          <div><dt>Baaki</dt><dd class="${g.pending < 0 ? "dr" : "cr"}"><b>${esc(bal(g.pending))}</b></dd></div>
+          <div><dt>Due date</dt><dd>${dt(g.due) || "-"}</dd></div>
+          <div><dt>Kitne din</dt><dd>${d ?? "-"}</dd></div>
+          <div><dt>Broker</dt><dd>${esc(g.broker ? nameOf(g.broker) : "-")}</dd></div>
+          <div><dt>Prakaar</dt><dd>${esc(g.kind || "-")}${g.fy ? " | FY " + fyLabel(g.fy) : ""}</dd></div>
+        </dl><div class="acts">
+          ${actBtn("stmt", "Statement", `data-goto="${esc(g.code)}" data-gtab="os"`)}
+          ${actLink(g.pending < 0 ? "bell" : "wa", g.pending < 0 ? "Reminder" : "WhatsApp", waLink((D.accounts.get(g.code) || {}).mobile, `*${(D.company || {}).name || ""}*\n${nameOf(g.code)} ji,\nBill ${g.label}${g.date != null ? " (" + dt(g.date) + ")" : ""} ka baaki: Rs. ${bal(g.pending)}\n${g.pending < 0 ? "Kripya bhugtan karein. " : ""}Dhanyavaad.`))}
+        </div></td></tr>` : ""}`;
+    }).join("");
+    return head("Sab baaki bills: " + sideTitle(), `${list.length} bills | Kul baaki <strong class="${tot < 0 ? "dr" : "cr"}">${esc(bal(tot))}</strong>`) +
+      `<div class="sheet"><div class="scroll"><table class="bahi rep"><thead><tr><th class="hm">Bill date</th><th>Bill no.</th><th>Party</th><th class="hm">Broker</th><th class="n hm">Bill amount</th><th class="n hm">Mila</th><th class="n">Baaki</th><th class="hm">Due date</th><th class="n x hm">Din</th></tr></thead>
+      <tbody>${body || `<tr><td colspan="9" class="none">Is filter me koi bill nahi.</td></tr>`}</tbody>
+      <tfoot><tr><td class="hm"></td><td colspan="2">Total (${list.length})</td><td class="hm"></td><td class="n hm">${esc(bal(tBill))}</td><td class="n hm">${amt(tAdj)}</td><td class="n b">${esc(bal(tot))}</td><td class="hm"></td><td class="hm"></td></tr></tfoot></table></div>
+      ${list.length > shown.length ? `<p class="more"><button type="button" class="btn alt" id="moreBills">Aur ${Math.min(200, list.length - shown.length)} bill dikhayein</button> <span class="sub">${shown.length} / ${list.length} dikh rahe hain</span></p>` : ""}
+      <p class="note">Bill number par tap karke us bill ka poora hisab dekhein.</p></div>`;
+  }
+
+  function gotoParty(code, tab) {
+    st.tab = tab || (st.sec === "day" ? "ledger" : "os");
+    st.q = "";
+    $("#q").value = "";
+    setSection("ledger");
+    selectParty(code);
+  }
+
+  // ---------------- Export ----------------
+  function currentCsv() {
+    const a = D.accounts.get(st.party);
+    const q = (v) => `"${String(v ?? "").replace(/"/g, '""')}"`;
+    const num = (x) => (Math.abs(x) < 0.005 ? "" : x.toFixed(2));
+    let lines = [];
+    if (st.tab === "ledger") {
+      const L = ledgerData(a.code);
+      lines.push(["Date", "Voucher", "No", "Particulars", "Narration", "Debit", "Credit", "Balance"]);
+      lines.push([dt(st.from), "Opening", "", "", "", L.opening < 0 ? num(-L.opening) : "", L.opening > 0 ? num(L.opening) : "", bal(L.opening)]);
+      for (const r of L.rows) lines.push([dt(r.date), r.vt, r.no, r.part, r.narr, num(r.dr), num(r.cr), bal(r.bal)]);
+      lines.push(["", "Closing", "", "", "", num(L.dr), num(L.cr), bal(L.closing)]);
+    } else if (st.tab === "bills") {
+      lines.push(["Date", "Bill no", "Item", "Bags", "Qty", "Rate", "Amount", "GST", "Bill amount"]);
+      for (const b of (D.bills.get(a.code) || []).filter((b) => inRange(b.date))) {
+        if (!b.items.length) lines.push([dt(b.date), b.no, "", "", "", "", "", "", num(b.net)]);
+        b.items.forEach((x, i) => lines.push([dt(b.date), b.no, x.item, x.bags, x.qty, num(x.rate), num(x.amount), num(x.gst), i === 0 ? num(b.net) : ""]));
+      }
+    } else {
+      lines.push(["Bill date", "Bill / voucher", "Type", "Bill amount", "Adjusted", "Pending", "Dr/Cr", "Due date", "Days"]);
+      for (const g of osData(a.code)) {
+        const days = g.due != null && Math.abs(g.pending) >= 0.5 ? Math.round((TODAY - g.due) / DAY) : "";
+        lines.push([dt(g.date), g.label, g.kind, num(Math.abs(g.billAmt)), num(g.adj), num(Math.abs(g.pending)), g.pending < 0 ? "Dr" : g.pending > 0 ? "Cr" : "", dt(g.due), days]);
+      }
+    }
+    const head = [[a.name], [st.tab === "ledger" ? "Ledger" : st.tab === "bills" ? "Bills" : "Outstanding", dt(st.from) + " to " + dt(st.to)], []];
+    return "\ufeff" + [...head, ...lines].map((r) => r.map(q).join(",")).join("\r\n");
+  }
+
+  async function downloadCsv() {
+    let name, data;
+    if (st.sec !== "ledger") {
+      if (!st.lastReport) return;
+      name = st.lastReport.name + ".csv";
+      data = "\ufeff" + st.lastReport.rows.map((r) => r.map((v) => `"${String(v ?? "").replace(/"/g, '""')}"`).join(",")).join("\r\n");
+    } else {
+      const a = D.accounts.get(st.party);
+      name = (a.name.replace(/[^\w\- ]+/g, "").trim() || "party") + "-" + st.tab + ".csv";
+      data = currentCsv();
+    }
+    try {
+      const dl = window.claude && window.claude.use ? await window.claude.use("downloads") : null;
+      if (dl) {
+        await dl.save({ filename: name, data });
+        return;
+      }
+    } catch (e) {
+      if (e && e.code === "declined") return;
+    }
+    const url = URL.createObjectURL(new Blob([data], { type: "text/csv" }));
+    const link = Object.assign(document.createElement("a"), { href: url, download: name });
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 2000);
+  }
+
+  // ---------------- Events ----------------
+  document.addEventListener("DOMContentLoaded", () => {
+    $("#pickFolder").onclick = () => $("#inFolder").click();
+    $("#pickFiles").onclick = () => $("#inFiles").click();
+    $("#inFolder").onchange = (e) => e.target.files.length && handleFiles(e.target.files);
+    $("#inFiles").onchange = (e) => e.target.files.length && handleFiles(e.target.files);
+    const dz = $("#drop");
+    ["dragenter", "dragover"].forEach((t) => dz.addEventListener(t, (e) => (e.preventDefault(), dz.classList.add("over"))));
+    ["dragleave", "drop"].forEach((t) => dz.addEventListener(t, () => dz.classList.remove("over")));
+    dz.addEventListener("drop", (e) => {
+      e.preventDefault();
+      if (e.dataTransfer.files.length) handleFiles(e.dataTransfer.files);
+    });
+
+    $("#reload").onclick = () => {
+      if (CLOUD_MODE) return cloudLoad(true);
+      if (SERVER_MODE) { syncPill("Jod rahe hain…"); return serverLoad(OFFLINE); }
+      $("#app").hidden = true;
+      $("#load").hidden = false;
+      $("#inFolder").value = "";
+      $("#inFiles").value = "";
+    };
+    window.addEventListener("resize", () => $("#billDlg").open && fitInvoice());
+    $("#closeBill").onclick = () => $("#billDlg").close ? $("#billDlg").close() : $("#billDlg").removeAttribute("open");
+    $("#billDlg").addEventListener("click", (e) => { if (e.target === $("#billDlg")) $("#closeBill").click(); });
+    $("#pinGo").onclick = () => {
+      const v = $("#pinIn").value.replace(/\D/g, "");
+      if (!v) return;
+      store.set("pk-pin", v);
+      $("#pinBox").hidden = true;
+      serverLoad(false);
+    };
+    $("#pinIn").addEventListener("keydown", (e) => e.key === "Enter" && $("#pinGo").click());
+    $("#pwGo2").onclick = unlockWithPassword;
+    $("#pwIn").addEventListener("keydown", (e) => e.key === "Enter" && unlockWithPassword());
+    $("#retry").onclick = () => {
+      $("#retry").hidden = true;
+      if (CLOUD_MODE) return cloudLoad(false);
+      serverLoad(false);
+    };
+    document.addEventListener("visibilitychange", () => {
+      if (CLOUD_MODE && D && document.visibilityState === "visible" && Date.now() - lastFetch > 60000) { lastFetch = Date.now(); cloudLoad(true); }
+      if (SERVER_MODE && D && document.visibilityState === "visible" && Date.now() - lastFetch > 20000) { lastFetch = Date.now(); serverLoad(true); }
+    });
+    if (SERVER_MODE && "serviceWorker" in navigator && window.isSecureContext) navigator.serviceWorker.register("/sw.js").catch(() => {});
+    if (CLOUD_MODE) {
+      if ("serviceWorker" in navigator && window.isSecureContext) navigator.serviceWorker.register("sw.js").catch(() => {});
+      $("#drop").hidden = true;
+      $("#loadSrv").hidden = false;
+      $("#loadSrv").prepend($("#status"));
+      document.querySelector(".privacy").hidden = true;
+      $("#load .lede").textContent = "Aapka hisab, kahin se bhi. Party chunein aur ledger, bills ya outstanding dekhein.";
+      cloudLoad(false);
+    }
+    if (SERVER_MODE) {
+      $("#drop").hidden = true;
+      $("#loadSrv").hidden = false;
+      $("#loadSrv").prepend($("#status"));
+      $("#load .lede").textContent = "Laptop se seedha taaza hisab. Party chunein aur ledger, bills ya outstanding dekhein.";
+      document.querySelector(".privacy").hidden = true;
+      serverLoad(false);
+    }
+    $("#q").addEventListener("input", (e) => {
+      st.q = e.target.value;
+      renderList();
+    });
+    $("#q").addEventListener("keydown", (e) => {
+      if (e.key === "Enter") {
+        const b = $("#plist button");
+        if (b) selectParty(b.dataset.c);
+      }
+    });
+    $("#active").onchange = (e) => {
+      st.onlyActive = e.target.checked;
+      renderList();
+    };
+    $("#plist").onclick = (e) => {
+      const b = e.target.closest("button[data-c]");
+      if (b) selectParty(b.dataset.c);
+    };
+    $("#backList").onclick = () => { $("#secLedger").classList.remove("picked"); window.scrollTo({ top: 0 }); $("#q").focus(); };
+    $("#fySel").onchange = (e) => {
+      setFy(e.target.value === "all" || e.target.value === "custom" ? e.target.value : +e.target.value);
+      syncFyCtl();
+      renderParty();
+    };
+    $("#from").onchange = (e) => {
+      if (!e.target.value) return;
+      st.from = parseIso(e.target.value);
+      st.fy = "custom";
+      $("#fySel").value = "custom";
+      renderParty();
+    };
+    $("#to").onchange = (e) => {
+      if (!e.target.value) return;
+      st.to = parseIso(e.target.value);
+      st.fy = "custom";
+      $("#fySel").value = "custom";
+      renderParty();
+    };
+    $("#pending").onchange = (e) => {
+      st.onlyPending = e.target.checked;
+      renderParty();
+    };
+    document.querySelector(".secs").addEventListener("click", (e) => {
+      const b = e.target.closest("[data-sec]");
+      if (b) setSection(b.dataset.sec);
+    });
+    const rc = $("#repCtl");
+    rc.addEventListener("click", (e) => {
+      const s = e.target.closest("[data-side]");
+      if (s) { st.side = s.dataset.side; rc.querySelectorAll("[data-side]").forEach((x) => x.setAttribute("aria-pressed", x === s)); renderRepBody(); }
+      if (e.target.closest("#rCsv")) downloadCsv();
+      if (e.target.closest("#fToggle")) { st.showFilter = !st.showFilter; $("#fPanel").hidden = !st.showFilter; e.target.closest("#fToggle").setAttribute("aria-expanded", st.showFilter); }
+      if (e.target.closest("#fClear")) { st.minDays = 0; st.fFrom = st.fTo = st.aMin = st.aMax = null; st.billsShown = 200; renderReport(); }
+      if (e.target.closest("#rPrint")) window.print();
+      const shift = e.target.closest("#dbPrev") ? -1 : e.target.closest("#dbNext") ? 1 : 0;
+      if (shift) {
+        const base = st.dbFrom === st.dbTo ? st.dbFrom : st.dbTo;
+        st.dbFrom = st.dbTo = base + shift * DAY;
+        renderReport();
+      }
+    });
+    rc.addEventListener("change", (e) => {
+      const id = e.target.id;
+      const num = (v) => (v === "" || isNaN(+v) ? null : +v);
+      if (["rDays", "fFrom", "fTo", "aMin", "aMax"].includes(id)) {
+        if (id === "rDays") st.minDays = +e.target.value;
+        if (id === "fFrom") st.fFrom = e.target.value ? parseIso(e.target.value) : null;
+        if (id === "fTo") st.fTo = e.target.value ? parseIso(e.target.value) : null;
+        if (id === "aMin") st.aMin = num(e.target.value);
+        if (id === "aMax") st.aMax = num(e.target.value);
+        st.billsShown = 200;
+        const fb = $("#fToggle");
+        if (fb) fb.textContent = "Filter" + (nFilters() ? ` (${nFilters()})` : "");
+        return renderRepBody();
+      }
+      if (id === "rDays") st.minDays = +e.target.value;
+      else if (id === "rSort") st.sort = e.target.value;
+      else if (id === "bSort") { st.bsort = e.target.value; st.billsShown = 200; }
+      else if (id === "pSaal") { setPFy(e.target.value === "all" || e.target.value === "custom" ? e.target.value : +e.target.value); st.pShown = 60; return renderReport(); }
+      else if (id === "pFrom" && e.target.value) { st.pFrom = parseIso(e.target.value); st.pFy = "custom"; st.pShown = 60; return renderReport(); }
+      else if (id === "pTo" && e.target.value) { st.pTo = parseIso(e.target.value); st.pFy = "custom"; st.pShown = 60; return renderReport(); }
+      else if (id === "pSort") st.psort = e.target.value;
+      else if (id === "dbFrom" && e.target.value) st.dbFrom = parseIso(e.target.value);
+      else if (id === "dbTo" && e.target.value) st.dbTo = parseIso(e.target.value);
+      else return;
+      renderRepBody();
+    });
+    let rqT;
+    rc.addEventListener("input", (e) => {
+      if (e.target.id === "pq") { st.pq = e.target.value; st.pShown = 60; clearTimeout(rqT); rqT = setTimeout(renderRepBody, 200); return; }
+      if (e.target.id !== "rq") return;
+      st.rq = e.target.value;
+      clearTimeout(rqT);
+      rqT = setTimeout(renderRepBody, 200);
+    });
+    $("#repBody").addEventListener("click", (e) => {
+      const g = e.target.closest("[data-goto]");
+      if (g) return gotoParty(g.dataset.goto, g.dataset.gtab);
+      const bp = e.target.closest("[data-billprint]");
+      if (bp) return printBill(bp.dataset.billprint);
+      const b = e.target.closest("[data-broker]");
+      if (b) { const k = b.dataset.broker; st.openB.has(k) ? st.openB.delete(k) : st.openB.add(k); return renderRepBody(); }
+      const bv = e.target.closest("[data-billview]");
+      if (bv) return openBill(bv.dataset.billview);
+      if (e.target.closest("#moreBills")) { st.billsShown += 200; return renderRepBody(); }
+      if (e.target.closest("#morePur")) { st.pShown += 60; return renderRepBody(); }
+      const pc = e.target.closest("[data-pur]");
+      if (pc) { const k = pc.dataset.pur; st.openP.has(k) ? st.openP.delete(k) : st.openP.add(k); return renderRepBody(); }
+      const ok = e.target.closest("[data-os]");
+      if (ok) { const k = ok.dataset.os; st.openOs.has(k) ? st.openOs.delete(k) : st.openOs.add(k); return renderRepBody(); }
+      const v = e.target.closest("[data-vch]");
+      if (v) { const k = v.dataset.vch; st.openV.has(k) ? st.openV.delete(k) : st.openV.add(k); return renderRepBody(); }
+    });
+    $("#party").addEventListener("click", (e) => {
+      const t = e.target.closest("[data-tab]");
+      if (t) {
+        st.tab = t.dataset.tab;
+        renderParty();
+        return;
+      }
+      const b = e.target.closest("[data-bill]");
+      if (b) {
+        const k = b.dataset.bill;
+        st.open.has(k) ? st.open.delete(k) : st.open.add(k);
+        renderParty();
+        const again = document.querySelector(`[data-bill="${CSS.escape(k)}"]`);
+        if (again) again.focus();
+        return;
+      }
+      const bv = e.target.closest("[data-billview]");
+      if (bv) return openBill(bv.dataset.billview);
+      const bp = e.target.closest("[data-billprint]");
+      if (bp) return printBill(bp.dataset.billprint);
+      const gt = e.target.closest("[data-goto]");
+      if (gt) {
+        if (gt.dataset.goto === st.party) { st.tab = gt.dataset.gtab || "ledger"; renderParty(); window.scrollTo({ top: 0, behavior: "smooth" }); }
+        else gotoParty(gt.dataset.goto, gt.dataset.gtab);
+        return;
+      }
+      if (e.target.closest("#pPrint")) return printDoc(statementHtml(D.accounts.get(st.party)));
+      if (e.target.closest("#print")) window.print();
+      if (e.target.closest("#csv")) downloadCsv();
+    });
+  });
+})();
+</script>
+</body>
+</html>
